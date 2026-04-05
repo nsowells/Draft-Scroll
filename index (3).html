@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="description" content="Draft Scroller — NFL Draft deep dives, pick-by-pick analysis, round summaries, and fun facts. Already doomscrolling? Why not draft scroll...">
+<meta name="theme-color" content="#111210">
+<title>Draft Scroller — NFL Draft Deep Dives</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800;900&family=Barlow:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#111210;--bg2:#191a17;--bg3:#202220;--bg4:#282a27;
+  --surface:#1e2019;
+  --text:#e8e6df;--text2:#aaa89f;--text3:#6e6c65;--text4:#4a4843;
+  --gold:#c8a84b;--gold-dim:#9a7e38;
+  --gold-glow:rgba(200,168,75,0.10);
+  --gold-line:rgba(200,168,75,0.20);
+  --gold-bdr:rgba(200,168,75,0.28);
+  --bdr:rgba(255,255,255,0.06);--bdr2:rgba(255,255,255,0.10);
+  --r:6px;--rl:10px;
+  --fh:'Barlow Condensed',sans-serif;
+  --fb:'Barlow',sans-serif;
+  --fm:'DM Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);font-size:14px;line-height:1.6;min-height:100vh}
+
+/* ── VIEWS ─────────────────────────────────── */
+.view{display:none;min-height:100vh}.view.active{display:block}
+
+/* ── GLOBAL NAV ─────────────────────────────── */
+.gnav{
+  position:sticky;top:0;z-index:200;
+  background:rgba(17,18,16,0.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;height:52px;
+}
+.gnav-logo{
+  font-family:var(--fh);font-size:21px;font-weight:800;letter-spacing:2.5px;
+  color:var(--gold);text-transform:uppercase;cursor:pointer;
+  display:flex;align-items:center;gap:9px;user-select:none;
+}
+.gnav-logo .dot{
+  width:7px;height:7px;background:var(--gold);border-radius:50%;flex-shrink:0;
+  animation:pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.65)}}
+.gnav-bc{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);font-family:var(--fm)}
+.gnav-bc .crumb{cursor:pointer;transition:color .18s}.gnav-bc .crumb:hover{color:var(--gold)}
+.gnav-bc .sep{color:var(--text4)}.gnav-bc .cur{color:var(--text2)}
+.gnav-right{display:flex;align-items:center;gap:8px}
+.nbtn{
+  font-family:var(--fh);font-size:11px;font-weight:600;letter-spacing:1.5px;
+  text-transform:uppercase;padding:5px 12px;border-radius:var(--r);
+  cursor:pointer;transition:all .18s;border:1px solid var(--bdr2);
+  background:transparent;color:var(--text3);
+}
+.nbtn:hover{background:var(--bg3);color:var(--text)}
+.nbtn.pri{background:var(--gold);color:#0f100e;border-color:var(--gold)}
+.nbtn.pri:hover{background:#ddb850}
+
+/* ══════════════════════════════════════════════
+   LANDING PAGE
+══════════════════════════════════════════════ */
+.hero{
+  position:relative;padding:72px 40px 48px;text-align:center;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 90% 55% at 50% -5%,rgba(200,168,75,0.09) 0%,transparent 68%);
+  pointer-events:none;
+}
+.hero-eye{
+  font-family:var(--fm);font-size:10px;letter-spacing:3.5px;color:var(--gold-dim);
+  text-transform:uppercase;margin-bottom:18px;
+  display:flex;align-items:center;justify-content:center;gap:12px;
+}
+.hero-eye::before,.hero-eye::after{content:'';width:36px;height:1px;background:var(--gold-line)}
+.hero-title{
+  font-family:var(--fh);
+  font-size:clamp(68px,11vw,128px);
+  font-weight:900;line-height:.88;letter-spacing:-1px;
+  text-transform:uppercase;color:var(--text);margin-bottom:16px;
+}
+.hero-title .acc{color:var(--gold);display:block}
+.hero-tag{
+  font-size:15px;color:var(--text3);font-style:italic;
+  font-weight:300;letter-spacing:.3px;max-width:480px;margin:0 auto 52px;
+}
+.hero-tag b{color:var(--text2);font-style:normal;font-weight:500}
+
+/* Editorial cards */
+.editorial{
+  max-width:920px;margin:0 auto 56px;
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  padding:0 40px;
+}
+.ed-card{
+  background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rl);
+  padding:18px 20px;transition:border-color .2s;
+}
+.ed-card:hover{border-color:var(--bdr2)}
+.ed-card.featured{
+  grid-column:1/-1;
+  background:linear-gradient(135deg,rgba(200,168,75,0.06) 0%,var(--bg2) 60%);
+  border-color:var(--gold-bdr);
+}
+.ed-label{
+  font-family:var(--fm);font-size:9px;letter-spacing:2.5px;color:var(--gold-dim);
+  text-transform:uppercase;margin-bottom:10px;
+}
+.ed-featured-inner{display:grid;grid-template-columns:1fr auto;align-items:center;gap:20px}
+.ed-headline{font-family:var(--fh);font-size:22px;font-weight:700;color:var(--text);line-height:1.2;margin-bottom:6px}
+.ed-body{font-size:12px;color:var(--text2);line-height:1.65}
+.ed-stat-big{font-family:var(--fh);font-size:64px;font-weight:900;color:var(--gold);line-height:1;text-align:center}
+.ed-stat-lbl{font-size:10px;color:var(--text3);text-align:center;letter-spacing:.5px;margin-top:2px}
+.ed-card:not(.featured) .ed-headline{font-size:16px}
+.ed-num{font-family:var(--fh);font-size:44px;font-weight:900;color:var(--gold);line-height:1;margin-bottom:4px}
+.ed-sub{font-size:11px;color:var(--text3);line-height:1.5}
+
+/* Best pick spotlight */
+.best-pick{max-width:920px;margin:0 auto 48px;padding:0 40px}
+.bp-card{
+  background:var(--bg2);border:1px solid var(--gold-bdr);border-radius:var(--rl);
+  padding:20px 24px;display:grid;grid-template-columns:auto 1fr auto;
+  align-items:center;gap:20px;
+  background:linear-gradient(135deg,rgba(200,168,75,0.07) 0%,var(--bg2) 50%);
+}
+.bp-badge-wrap{text-align:center}
+.bp-pick-badge{
+  font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:1px;
+  color:var(--gold);background:var(--gold-glow);border:1px solid var(--gold-bdr);
+  padding:4px 10px;border-radius:4px;display:inline-block;
+}
+.bp-rd{font-family:var(--fh);font-size:13px;color:var(--text3);margin-top:4px}
+.bp-label{font-family:var(--fm);font-size:9px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:8px}
+.bp-name{font-family:var(--fh);font-size:26px;font-weight:800;color:var(--text);margin-bottom:2px}
+.bp-meta{font-size:11px;color:var(--text3);margin-bottom:6px}
+.bp-note{font-size:12px;color:var(--text2);line-height:1.6}
+.bp-logo-wrap{width:64px;height:64px;display:flex;align-items:center;justify-content:center}
+.bp-logo-wrap img{width:64px;height:64px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.5))}
+.bp-logo-fb{
+  width:64px;height:64px;border-radius:50%;display:none;
+  align-items:center;justify-content:center;
+  font-family:var(--fh);font-size:16px;font-weight:800;
+  background:var(--bg4);color:var(--gold);border:1px solid var(--gold-bdr);
+}
+
+/* Section label */
+.section-label{
+  font-family:var(--fm);font-size:10px;letter-spacing:3px;color:var(--text4);
+  text-transform:uppercase;margin-bottom:14px;
+  display:flex;align-items:center;gap:12px;padding:0 40px;
+}
+.section-label::after{content:'';flex:1;height:1px;background:var(--bdr)}
+
+/* Year grid */
+.year-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(256px,1fr));
+  gap:10px;padding:0 40px 64px;max-width:1100px;margin:0 auto;
+}
+.ycard{
+  background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rl);
+  padding:18px 20px;cursor:pointer;transition:all .2s;
+  position:relative;overflow:hidden;
+}
+.ycard::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .22s;
+}
+.ycard:hover{background:var(--bg3);border-color:var(--bdr2);transform:translateY(-2px)}
+.ycard:hover::before{transform:scaleX(1)}
+.ycard.live{border-color:var(--gold-bdr)}
+.ycard.soon{opacity:.42;cursor:default}
+.ycard.soon:hover{transform:none;background:var(--bg2);border-color:var(--bdr)}
+.ycard.soon::before{display:none}
+.yc-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.yc-yr{font-family:var(--fh);font-size:46px;font-weight:900;line-height:1;color:var(--text)}
+.ycard.live .yc-yr{color:var(--gold)}
+.ybadge{font-family:var(--fm);font-size:9px;letter-spacing:1.5px;padding:3px 8px;border-radius:20px;text-transform:uppercase}
+.ybadge.live{background:rgba(200,168,75,.13);color:var(--gold);border:1px solid var(--gold-line)}
+.ybadge.soon{background:var(--bg4);color:var(--text4);border:1px solid var(--bdr)}
+.yc-head{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;line-height:1.4}
+.yc-chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.ychip{font-size:10px;padding:2px 6px;border-radius:3px;background:var(--bg4);color:var(--text3);border:1px solid var(--bdr)}
+.ychip.star{background:var(--gold-glow);color:var(--gold);border-color:var(--gold-bdr)}
+.yc-ft{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--bdr)}
+.yc-ft-meta{font-size:10px;color:var(--text4);font-family:var(--fm)}
+.yc-ft-arr{font-size:13px;color:var(--text4);transition:color .18s}
+.ycard:hover .yc-ft-arr{color:var(--gold)}
+
+/* ══════════════════════════════════════════════
+   2017 YEAR HUB
+══════════════════════════════════════════════ */
+.yhero{
+  background:linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%);
+  border-bottom:1px solid var(--bdr);
+  padding:36px 40px 28px;position:relative;overflow:hidden;
+}
+.yhero::after{
+  content:'2017';position:absolute;right:-8px;top:-20px;
+  font-family:var(--fh);font-size:180px;font-weight:900;
+  color:rgba(255,255,255,0.018);line-height:1;
+  pointer-events:none;user-select:none;
+}
+.yh-eye{font-family:var(--fm);font-size:10px;letter-spacing:3px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:8px}
+.yh-title{
+  font-family:var(--fh);font-size:clamp(38px,6vw,68px);font-weight:900;
+  text-transform:uppercase;letter-spacing:1px;line-height:1;color:var(--text);margin-bottom:6px;
+}
+.yh-title span{color:var(--gold)}
+.yh-sub{font-size:13px;color:var(--text3);font-style:italic;margin-bottom:24px}
+.yh-stats{display:flex;gap:28px;flex-wrap:wrap}
+.yh-sn{font-family:var(--fh);font-size:22px;font-weight:800;color:var(--gold);line-height:1}
+.yh-sl{font-size:10px;color:var(--text3);letter-spacing:.5px;text-transform:uppercase}
+
+/* Year sub-nav */
+.ysubnav{
+  display:flex;gap:2px;padding:8px 20px;background:var(--bg2);
+  border-bottom:1px solid var(--bdr);overflow-x:auto;
+  position:sticky;top:52px;z-index:90;
+}
+.ysntab{
+  padding:6px 16px;border-radius:var(--r);
+  font-family:var(--fh);font-size:13px;font-weight:600;letter-spacing:1px;
+  text-transform:uppercase;cursor:pointer;color:var(--text3);
+  border:1px solid transparent;white-space:nowrap;transition:all .15s;
+}
+.ysntab:hover{color:var(--text2);background:var(--bg3)}
+.ysntab.active{color:var(--gold);background:var(--gold-glow);border-color:var(--gold-bdr)}
+
+.ycontent{display:none;padding:20px}.ycontent.active{display:block}
+
+/* Round nav tabs */
+.rnav{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+.rtab{
+  padding:5px 14px;border-radius:var(--r);
+  font-family:var(--fh);font-size:13px;font-weight:600;letter-spacing:1px;
+  text-transform:uppercase;cursor:pointer;color:var(--text3);
+  border:1px solid var(--bdr);background:transparent;transition:all .15s;
+}
+.rtab:hover{color:var(--text2);background:var(--bg3)}
+.rtab.active{color:#0f100e;background:var(--gold);border-color:var(--gold)}
+
+/* Pick rows */
+.pick-list{display:flex;flex-direction:column;gap:3px}
+.prow{
+  display:grid;grid-template-columns:56px 52px 1fr auto;
+  align-items:stretch;background:var(--bg2);border:1px solid var(--bdr);
+  border-radius:var(--r);overflow:hidden;gap:0;transition:all .12s;
+}
+.prow.star{border-left:2px solid var(--gold);cursor:pointer}
+.prow.star:hover{background:var(--bg3);border-color:var(--gold-bdr);transform:translateX(2px)}
+.prow.std{border-left:2px solid var(--bg4)}
+.pr-num{
+  background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:8px 4px;height:100%;border-right:1px solid var(--bdr);
+}
+.pr-ov{font-family:var(--fh);font-size:18px;font-weight:800;line-height:1;color:var(--text3)}
+.prow.star .pr-ov{color:var(--gold)}
+.pr-rp{font-size:9px;color:var(--text4);font-family:var(--fm)}
+.pr-logo-cell{
+  background:var(--surface);display:flex;align-items:center;justify-content:center;
+  height:100%;border-right:1px solid var(--bdr);padding:4px;min-width:52px;
+}
+.pr-logo-cell img{width:34px;height:34px;object-fit:contain;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.5));display:block}
+.pr-logo-cell .fb{
+  width:34px;height:34px;border-radius:4px;display:none;
+  align-items:center;justify-content:center;
+  font-family:var(--fh);font-size:10px;font-weight:700;color:#fff;
+}
+.pr-info{padding:6px 11px;display:flex;flex-direction:column;gap:1px;justify-content:center}
+.pr-name{font-weight:600;font-size:13px;color:var(--text)}
+.pr-name.star{color:var(--gold)}
+.pr-pos{
+  display:inline-block;font-size:9px;font-weight:600;
+  background:var(--bg4);color:var(--text3);padding:1px 5px;
+  border-radius:3px;margin-right:4px;
+}
+.pr-col{font-size:10px;color:var(--text3)}
+.pr-acc{
+  font-size:9px;color:var(--gold);background:var(--gold-glow);
+  border:1px solid var(--gold-bdr);padding:1px 5px;border-radius:3px;
+  display:inline-block;margin-top:2px;
+}
+.pr-exp{
+  display:flex;align-items:center;justify-content:center;
+  padding:0 12px;height:100%;color:var(--text4);
+  font-size:11px;border-left:1px solid var(--bdr);
+  background:var(--bg);transition:color .15s;min-width:36px;
+}
+.prow.star:hover .pr-exp{color:var(--gold)}
+
+/* Round summaries */
+.sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px}
+.scard{border-radius:var(--rl);overflow:hidden;border:1px solid}
+.scard.best{background:rgba(39,100,60,.09);border-color:rgba(78,154,106,.28)}
+.scard.bust{background:rgba(120,40,40,.09);border-color:rgba(154,78,78,.28)}
+.scard.value{background:rgba(40,80,140,.09);border-color:rgba(78,106,154,.28)}
+.scard.reach{background:rgba(90,40,130,.09);border-color:rgba(122,78,154,.28)}
+.sc-hdr{display:flex;align-items:center;gap:7px;padding:8px 11px 7px;border-bottom:1px solid rgba(255,255,255,.05)}
+.sc-icon{font-size:14px}
+.sc-lbl{font-family:var(--fh);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.scard.best .sc-lbl{color:#52D68A}.scard.bust .sc-lbl{color:#E57373}
+.scard.value .sc-lbl{color:#7DC2F0}.scard.reach .sc-lbl{color:#C39BD3}
+.sc-body{padding:9px 11px}
+.se{margin-bottom:9px;padding-bottom:9px;border-bottom:1px solid var(--bdr)}
+.se:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+.se-name{font-weight:600;font-size:12px;color:var(--text);margin-bottom:1px}
+.se-pick{font-size:10px;color:var(--text3);font-family:var(--fm);margin-bottom:3px}
+.se-note{font-size:11px;line-height:1.55;color:var(--text2)}
+
+.grade-wrap{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rl);padding:12px;margin-bottom:12px}
+.grade-title{font-family:var(--fm);font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:9px}
+.grade-row{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.grade-row:last-child{margin-bottom:0}
+.grade-lbl{font-size:11px;color:var(--text3);width:105px;flex-shrink:0}
+.grade-track{flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.grade-fill{height:100%;border-radius:3px}
+.grade-val{font-size:11px;font-weight:600;width:26px;text-align:right;flex-shrink:0;font-family:var(--fm)}
+.ctx-wrap{background:var(--gold-glow);border:1px solid var(--gold-bdr);border-radius:var(--rl);padding:12px 14px;margin-bottom:12px}
+.ctx-lbl{font-family:var(--fm);font-size:9px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:5px}
+.ctx-txt{font-size:12px;line-height:1.7;color:var(--text2)}
+
+/* Fun facts */
+.ff-nav{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:14px}
+.fftab{
+  padding:5px 12px;border-radius:var(--r);font-size:12px;font-weight:500;
+  cursor:pointer;color:var(--text3);border:1px solid var(--bdr);background:transparent;transition:all .15s;
+}
+.fftab:hover{color:var(--text2);background:var(--bg3)}
+.fftab.active{color:var(--gold);background:var(--gold-glow);border-color:var(--gold-bdr)}
+.ffpage{display:none}.ffpage.active{display:block}
+.ffe{border-radius:var(--rl);padding:11px 13px;margin-bottom:7px;border-left:3px solid}
+.ffe.gold{background:rgba(200,168,75,.05);border-left-color:var(--gold)}
+.ffe.green{background:rgba(39,100,60,.07);border-left-color:#4e9a6a}
+.ffe.blue{background:rgba(40,80,140,.07);border-left-color:#4e6a9a}
+.ffe.purple{background:rgba(90,40,130,.07);border-left-color:#7a4e9a}
+.ffe.teal{background:rgba(22,120,100,.07);border-left-color:#3a8a7a}
+.ffe.red{background:rgba(120,40,40,.07);border-left-color:#9a4e4e}
+.ffe-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px;gap:8px}
+.ffe-name{font-weight:700;font-size:13px;color:var(--text)}
+.ffe-tag{font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;white-space:nowrap;flex-shrink:0;font-family:var(--fm)}
+.ffe-tag.gold{background:var(--gold-glow);color:var(--gold);border:1px solid var(--gold-bdr)}
+.ffe-tag.green{background:rgba(39,100,60,.1);color:#52D68A;border:1px solid rgba(78,154,106,.3)}
+.ffe-tag.blue{background:rgba(40,80,140,.1);color:#7DC2F0;border:1px solid rgba(78,106,154,.3)}
+.ffe-tag.purple{background:rgba(90,40,130,.1);color:#C39BD3;border:1px solid rgba(122,78,154,.3)}
+.ffe-tag.teal{background:rgba(22,120,100,.1);color:#48C9B0;border:1px solid rgba(58,138,120,.3)}
+.ffe-tag.red{background:rgba(120,40,40,.1);color:#E57373;border:1px solid rgba(154,78,78,.3)}
+.ffe-sub{font-size:10px;color:var(--text3);margin-bottom:4px;font-style:italic}
+.ffe-body{font-size:12px;line-height:1.65;color:var(--text2)}
+.ffe-body b{color:var(--text);font-weight:600}
+.pb-slbl{font-family:var(--fm);font-size:9px;letter-spacing:2px;color:var(--text4);text-transform:uppercase;margin-bottom:7px}
+.pb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:11px}
+.pb-chip{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:6px 8px}
+.pb-chip-n{font-size:11px;font-weight:600;color:var(--gold)}
+.pb-chip-m{font-size:9px;color:var(--text3);margin-top:1px;font-family:var(--fm)}
+
+/* Site footer */
+.site-footer{
+  border-top:1px solid var(--bdr);padding:22px 40px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg2);margin-top:20px;
+}
+.footer-logo{font-family:var(--fh);font-size:18px;font-weight:800;letter-spacing:2px;color:var(--gold);text-transform:uppercase}
+.footer-meta{font-size:11px;color:var(--text4);font-family:var(--fm);cursor:pointer;transition:color .18s}
+.footer-meta:hover{color:var(--text3)}
+
+/* Responsive */
+@media(max-width:640px){
+  .hero{padding:48px 20px 36px}
+  .editorial{padding:0 20px;grid-template-columns:1fr}
+  .ed-card.featured{grid-column:1}
+  .ed-featured-inner{grid-template-columns:1fr}
+  .ed-stat-big{font-size:48px}
+  .best-pick{padding:0 20px}
+  .bp-card{grid-template-columns:auto 1fr;gap:14px}
+  .bp-logo-wrap{display:none}
+  .section-label{padding:0 20px}
+  .year-grid{padding:0 20px 48px;grid-template-columns:1fr}
+  .yhero{padding:24px 20px 20px}
+  .ysubnav{padding:8px 14px}
+  .ycontent{padding:16px}
+  .sum-grid{grid-template-columns:1fr}
+  .pb-grid{grid-template-columns:1fr 1fr}
+  .gnav-bc{display:none}
+  .site-footer{padding:18px 20px;flex-direction:column;gap:8px;text-align:center}
+}
+
+/* ── MODAL ─────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(5,10,18,.92);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--bg2);border:1px solid var(--gold-bdr);border-radius:14px;max-width:700px;width:100%;overflow:hidden;margin:auto;animation:slideUp .2s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.mhdr{background:linear-gradient(135deg,var(--bg3),var(--surface));padding:16px 20px;border-bottom:1px solid var(--gold-bdr);display:flex;justify-content:space-between;align-items:flex-start}
+.mhdr-l .mpick{font-family:var(--fh);font-size:40px;font-weight:900;color:var(--gold);line-height:1}
+.mhdr-l .mname{font-size:17px;font-weight:700;color:var(--text);margin-top:2px}
+.mhdr-l .msub{font-size:11px;color:var(--text2);margin-top:2px}
+.mhdr-l .mpos{display:inline-block;background:var(--gold);color:#0f100e;font-family:var(--fh);font-size:11px;font-weight:700;padding:3px 9px;border-radius:4px;margin-top:6px;letter-spacing:.5px}
+.mhdr-r{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.mclose{background:rgba(255,255,255,.08);border:1px solid var(--bdr2);color:var(--text2);font-size:15px;width:28px;height:28px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.mclose:hover{background:rgba(255,255,255,.15);color:var(--text)}
+.mteam-logo{width:52px;height:52px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))}
+.mteam-fb{width:52px;height:52px;border-radius:8px;display:none;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;font-weight:700;color:#fff}
+.mtabs{display:flex;border-bottom:1px solid var(--bdr);background:var(--bg);overflow-x:auto}
+.mtab{padding:10px 14px;font-family:var(--fh);font-size:13px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.mtab:hover{color:var(--text2)}.mtab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.mpanel{display:none;padding:16px 20px;max-height:65vh;overflow-y:auto}.mpanel.active{display:block}
+.mrow-title{font-family:var(--fm);font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin:12px 0 6px;padding-bottom:5px;border-bottom:1px solid var(--bdr)}
+.mrow-title:first-child{margin-top:0}
+.mblurb{font-size:12px;line-height:1.7;color:var(--text2);padding:10px 12px;background:var(--bg);border-radius:var(--r);border-left:3px solid var(--gold);margin-bottom:8px}
+.maccbadges{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.maccbadge{background:var(--gold-glow);border:1px solid var(--gold-bdr);color:var(--gold);font-size:9px;padding:2px 7px;border-radius:3px}
+.mstats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+.mstat-box{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:7px;text-align:center}
+.mstat-val{font-size:14px;font-weight:600;color:var(--text)}.mstat-lbl{font-size:9px;color:var(--text3);margin-top:2px}
+.mmeas-row{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:8px}
+.mmeas-box{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:6px;text-align:center}
+.mmeas-val{font-size:12px;font-weight:600;color:var(--text)}.mmeas-lbl{font-size:8px;color:var(--text3);margin-top:1px}
+.combine-drill{margin-bottom:10px}
+.drill-hdr{display:flex;justify-content:space-between;margin-bottom:4px}
+.drill-name{font-size:12px;font-weight:500;color:var(--text)}.drill-val{font-size:12px;font-weight:600;color:var(--text)}
+.bar-r{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+.bar-lbl{font-size:9px;color:var(--text3);width:80px;flex-shrink:0}
+.bar-track{flex:1;height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px}
+.bf-40{background:linear-gradient(90deg,#3B8BD4,#5AA3D4)}.bf-bench{background:linear-gradient(90deg,#E85D24,#EF8B2C)}
+.bf-vert{background:linear-gradient(90deg,#27AE60,#52D68A)}.bf-broad{background:linear-gradient(90deg,#8B5CF6,#A78BFA)}
+.bf-cone{background:linear-gradient(90deg,#EF4444,#F87171)}.bf-shuttle{background:linear-gradient(90deg,#F59E0B,#FCD34D)}
+.bar-pct{font-size:9px;width:28px;text-align:right;flex-shrink:0}
+.bar-note{font-size:9px;color:var(--text4);margin-top:1px}
+.no-combine{text-align:center;padding:20px;color:var(--text3);font-size:12px;font-style:italic}
+.proj-pill{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:8px}
+.pp-top5{background:rgba(200,168,75,.15);color:var(--gold);border:1px solid var(--gold-bdr)}
+.pp-mid1{background:rgba(58,130,180,.15);color:#7DC2F0;border:1px solid rgba(78,106,154,.4)}
+.pp-late1{background:rgba(39,174,96,.15);color:#52D68A;border:1px solid rgba(78,154,106,.4)}
+.pp-r2{background:rgba(142,68,173,.15);color:#C39BD3;border:1px solid rgba(122,78,154,.4)}
+@media(max-width:600px){.mstats-row{grid-template-columns:repeat(2,1fr)}.mmeas-row{grid-template-columns:repeat(3,1fr)}.mtab{padding:8px 10px;font-size:11px}}
+</style>
+</head>
+<body>
+
+<!-- PLAYER MODAL -->
+<div class="modal-overlay" id="playerModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="mhdr">
+      <div class="mhdr-l">
+        <div class="mpick" id="m-pick"></div>
+        <div class="mname" id="m-name"></div>
+        <div class="msub" id="m-sub"></div>
+        <div class="mpos" id="m-pos"></div>
+      </div>
+      <div class="mhdr-r">
+        <button class="mclose" onclick="closeModal()">&#x2715;</button>
+        <img class="mteam-logo" id="m-logo" src="" alt=""
+             onerror="this.style.display='none';document.getElementById('m-logo-fb').style.display='flex'">
+        <div class="mteam-fb" id="m-logo-fb"></div>
+      </div>
+    </div>
+    <div class="mtabs" id="m-tabs"></div>
+    <div id="m-panels"></div>
+  </div>
+</div>
+
+
+<!-- ── GLOBAL NAV ── -->
+<nav class="gnav">
+  <div class="gnav-logo" onclick="goHome()">
+    <span class="dot"></span>Draft Scroller
+  </div>
+  <div class="gnav-bc" id="bc"><span class="cur">Home</span></div>
+  <div class="gnav-right">
+    <button class="nbtn" onclick="goHome()">All Years</button>
+    <button class="nbtn pri" onclick="goYear('2017')">2017 Draft →</button>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════
+     LANDING PAGE
+══════════════════════════════════════════════ -->
+<div id="view-home" class="view active">
+
+  <div class="hero">
+    <div class="hero-eye">NFL Draft Deep Dives</div>
+    <h1 class="hero-title">Draft<span class="acc">Scroller</span></h1>
+    <p class="hero-tag">Already doomscrolling? <b>Why not draft scroll...</b></p>
+  </div>
+
+  <!-- Editorial highlight cards -->
+  <div class="editorial">
+    <div class="ed-card featured">
+      <div class="ed-label">2017 Class Highlight</div>
+      <div class="ed-featured-inner">
+        <div>
+          <div class="ed-headline">The Greatest Day 3 Draft in NFL History</div>
+          <div class="ed-body">The 2017 class produced Kittle at #146, Aaron Jones at #182, Quandre Diggs at #165, Matt Milano at #163, Desmond King at #151, and Harrison Butker at #233. Round 5 alone generated more Pro Bowl appearances than most entire draft classes. And at #69 in Round 3, an FCS receiver from Eastern Washington posted the greatest single receiving season in NFL history.</div>
+        </div>
+        <div>
+          <div class="ed-stat-big">32+</div>
+          <div class="ed-stat-lbl">Pro Bowlers<br>Produced</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ed-card">
+      <div class="ed-label">Most Costly Single Decision</div>
+      <div class="ed-num">#2</div>
+      <div class="ed-headline">Trubisky over Mahomes</div>
+      <div class="ed-sub">Chicago traded up one spot — giving up four picks — to pass on a future 3× MVP. Mahomes went eight picks later.</div>
+    </div>
+
+    <div class="ed-card">
+      <div class="ed-label">Best Value Pick — All Time?</div>
+      <div class="ed-num">#146</div>
+      <div class="ed-headline">George Kittle, SF</div>
+      <div class="ed-sub">Iowa's system hid his talent so completely he slid to pick 146. He went on to break the single-season TE receiving yards record and earn 6 Pro Bowls.</div>
+    </div>
+  </div>
+
+  <!-- Best pick spotlight -->
+  <div class="best-pick">
+    <div class="bp-card">
+      <div class="bp-badge-wrap">
+        <div class="bp-pick-badge">Pick #233</div>
+        <div class="bp-rd">Round 7</div>
+      </div>
+      <div>
+        <div class="bp-label">7th Round · Carolina Panthers · Kicker</div>
+        <div class="bp-name">Harrison Butker</div>
+        <div class="bp-meta">Georgia Tech · via IND → CLE → CAR trades</div>
+        <div class="bp-note">Went on to become a 4× Pro Bowler, 2× First-Team All-Pro, Super Bowl champion, and cornerstone kicker of the Kansas City Chiefs dynasty. The greatest gap between draft position and NFL achievement in the 2017 class.</div>
+      </div>
+      <div class="bp-logo-wrap">
+        <img src="https://a.espncdn.com/i/teamlogos/nfl/500/kc.png" alt="KC Chiefs"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="bp-logo-fb" style="display:none">KC</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Draft Years</div>
+
+  <div class="year-grid">
+    <div class="ycard live" onclick="goYear('2017')">
+      <div class="yc-hdr"><div class="yc-yr">2017</div><div class="ybadge live">● Live</div></div>
+      <div class="yc-head">Philadelphia · April 27–29 · First outdoor draft in history</div>
+      <div class="yc-chips">
+        <span class="ychip star">Mahomes #10</span>
+        <span class="ychip star">Kittle #146</span>
+        <span class="ychip star">T.J. Watt #30</span>
+        <span class="ychip star">Kupp #69</span>
+        <span class="ychip">37 trades (record)</span>
+        <span class="ychip">253 picks</span>
+      </div>
+      <div class="yc-ft">
+        <span class="yc-ft-meta">7 rounds · 32+ Pro Bowlers</span>
+        <span class="yc-ft-arr">→</span>
+      </div>
+    </div>
+    <div class="ycard soon"><div class="yc-hdr"><div class="yc-yr">2018</div><div class="ybadge soon">Coming Soon</div></div><div class="yc-head">Arlington · Baker Mayfield #1 · Lamar Jackson #32</div><div class="yc-ft"><span class="yc-ft-meta">253 picks · 7 rounds</span><span class="yc-ft-arr">—</span></div></div>
+    <div class="ycard soon"><div class="yc-hdr"><div class="yc-yr">2019</div><div class="ybadge soon">Coming Soon</div></div><div class="yc-head">Nashville · Kyler Murray #1 · Nick Bosa #2</div><div class="yc-ft"><span class="yc-ft-meta">254 picks · 7 rounds</span><span class="yc-ft-arr">—</span></div></div>
+    <div class="ycard soon"><div class="yc-hdr"><div class="yc-yr">2020</div><div class="ybadge soon">Coming Soon</div></div><div class="yc-head">Virtual · Joe Burrow #1 · Chase Young #2</div><div class="yc-ft"><span class="yc-ft-meta">255 picks · 7 rounds</span><span class="yc-ft-arr">—</span></div></div>
+    <div class="ycard soon"><div class="yc-hdr"><div class="yc-yr">2016</div><div class="ybadge soon">Coming Soon</div></div><div class="yc-head">Chicago · Jared Goff #1 · Carson Wentz #2</div><div class="yc-ft"><span class="yc-ft-meta">253 picks · 7 rounds</span><span class="yc-ft-arr">—</span></div></div>
+    <div class="ycard soon"><div class="yc-hdr"><div class="yc-yr">2021</div><div class="ybadge soon">Coming Soon</div></div><div class="yc-head">Cleveland · Trevor Lawrence #1 · Ja'Marr Chase #5</div><div class="yc-ft"><span class="yc-ft-meta">259 picks · 7 rounds</span><span class="yc-ft-arr">—</span></div></div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-logo">Draft Scroller</div>
+    <div class="footer-meta">Beta · 2017 Edition · More years coming soon</div>
+  </footer>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     2017 YEAR HUB
+══════════════════════════════════════════════ -->
+<div id="view-2017" class="view">
+
+  <div class="yhero">
+    <div class="yh-eye">NFL Draft · Philadelphia, PA</div>
+    <h2 class="yh-title"><span>2017</span> NFL Draft</h2>
+    <p class="yh-sub">April 27–29 · Philadelphia Museum of Art · The Rocky Steps</p>
+    <div class="yh-stats">
+      <div><div class="yh-sn">253</div><div class="yh-sl">Total Picks</div></div>
+      <div><div class="yh-sn">37</div><div class="yh-sl">Trades (record)</div></div>
+      <div><div class="yh-sn">32+</div><div class="yh-sl">Pro Bowlers</div></div>
+      <div><div class="yh-sn">250K+</div><div class="yh-sl">Attendance</div></div>
+    </div>
+  </div>
+
+  <div class="ysubnav">
+    <div class="ysntab active" onclick="showTab('picks',this)">📋 Pick Browser</div>
+    <div class="ysntab" onclick="showTab('summaries',this)">📊 Round Summaries</div>
+    <div class="ysntab" onclick="showTab('funfacts',this)">🎲 Fun Facts &amp; Trivia</div>
+  </div>
+
+  <!-- PICK BROWSER -->
+  <div id="yc-picks" class="ycontent active">
+    <div class="rnav" id="rdnav">
+      <div class="rtab active" onclick="showRd(1,this)">Rd 1</div>
+      <div class="rtab" onclick="showRd(2,this)">Rd 2</div>
+      <div class="rtab" onclick="showRd(3,this)">Rd 3</div>
+      <div class="rtab" onclick="showRd(4,this)">Rd 4</div>
+      <div class="rtab" onclick="showRd(5,this)">Rd 5</div>
+      <div class="rtab" onclick="showRd(6,this)">Rd 6</div>
+      <div class="rtab" onclick="showRd(7,this)">Rd 7</div>
+    </div>
+    <div class="pick-list" id="pickList"></div>
+  </div>
+
+  <!-- ROUND SUMMARIES -->
+  <div id="yc-summaries" class="ycontent">
+    <div class="rnav" id="sumnav">
+      <div class="rtab active" onclick="showSum(1,this)">Rd 1</div>
+      <div class="rtab" onclick="showSum(2,this)">Rd 2</div>
+      <div class="rtab" onclick="showSum(3,this)">Rd 3</div>
+      <div class="rtab" onclick="showSum(4,this)">Rd 4</div>
+      <div class="rtab" onclick="showSum(5,this)">Rd 5</div>
+      <div class="rtab" onclick="showSum(6,this)">Rd 6</div>
+      <div class="rtab" onclick="showSum(7,this)">Rd 7</div>
+    </div>
+    <div id="sumOut"></div>
+  </div>
+
+  <!-- FUN FACTS -->
+  <div id="yc-funfacts" class="ycontent">
+    <div class="ff-nav">
+      <div class="fftab active" onclick="showFF('snapshot',this)">📊 Class Snapshot</div>
+      <div class="fftab" onclick="showFF('family',this)">👨‍👩‍👦 Family Connections</div>
+      <div class="fftab" onclick="showFF('small',this)">🏫 Small School Picks</div>
+      <div class="fftab" onclick="showFF('trivia',this)">🎲 Trivia &amp; Records</div>
+      <div class="fftab" onclick="showFF('probowl',this)">⭐ Pro Bowl Roll Call</div>
+      <div class="fftab" onclick="showFF('udfa',this)">💼 Top UDFAs</div>
+    </div>
+    <div id="ffOut"></div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-logo">Draft Scroller</div>
+    <div class="footer-meta" onclick="goHome()">← All Draft Years</div>
+  </footer>
+</div>
+
+<script>
+// ── ESPN CDN logo map (2017 — Oakland still OAK, Chargers still SD-era abbreviation changes noted) ──
+const LOGO={CLE:'cle',CHI:'chi',SF:'sf',JAX:'jax',TEN:'ten',NYJ:'nyj',LAC:'lac',CAR:'car',CIN:'cin',KC:'kc',NO:'no',HOU:'hou',ARI:'ari',PHI:'phi',IND:'ind',BAL:'bal',WAS:'wsh',TB:'tb',DEN:'den',DET:'det',MIA:'mia',NYG:'nyg',OAK:'oak',PIT:'pit',ATL:'atl',DAL:'dal',GB:'gb',SEA:'sea',MIN:'min',LAR:'lar',BUF:'buf',NE:'ne',LV:'lv'};
+const TC={CLE:'#311D00',CHI:'#00143F',SF:'#AA0000',JAX:'#006778',TEN:'#002A5C',NYJ:'#003F2D',LAC:'#002A5E',CAR:'#0085CA',CIN:'#FB4F14',KC:'#E31837',NO:'#9E8A5A',HOU:'#03202F',ARI:'#97233F',PHI:'#004C54',IND:'#002C5F',BAL:'#241773',WAS:'#5A1414',TB:'#D50A0A',DEN:'#002244',DET:'#0076B6',MIA:'#008E97',NYG:'#0B2265',OAK:'#000000',PIT:'#101820',ATL:'#A71930',DAL:'#003594',GB:'#203731',SEA:'#002244',MIN:'#4F2683',LAR:'#003594',BUF:'#00338D',NE:'#002244'};
+
+function logoCell(team){
+  const abbr=LOGO[team]||team.toLowerCase();
+  const url=`https://a.espncdn.com/i/teamlogos/nfl/500/${abbr}.png`;
+  const col=TC[team]||'#1e2019';
+  return `<div class="pr-logo-cell">
+    <img src="${url}" alt="${team}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+    <div class="fb" style="background:${col}">${team}</div>
+  </div>`;
+}
+
+// ── NAVIGATION ──
+function goHome(){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-home').classList.add('active');
+  document.getElementById('bc').innerHTML='<span class="cur">Home</span>';
+  window.scrollTo(0,0);
+}
+function goYear(yr){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+yr).classList.add('active');
+  document.getElementById('bc').innerHTML=`<span class="crumb" onclick="goHome()">Home</span><span class="sep">/</span><span class="cur">${yr} Draft</span>`;
+  window.scrollTo(0,0);
+}
+function showTab(tab,el){
+  document.querySelectorAll('.ycontent').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.ysntab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('yc-'+tab).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── PICK DATA — All 253 picks ──
+const PICKS={
+  1:[
+    {o:1,t:'CLE',n:'Myles Garrett',pos:'DE',col:'Texas A&M',star:true,acc:'6× Pro Bowl'},
+    {o:2,t:'CHI',n:'Mitchell Trubisky',pos:'QB',col:'North Carolina'},
+    {o:3,t:'SF',n:'Solomon Thomas',pos:'DE',col:'Stanford'},
+    {o:4,t:'JAX',n:'Leonard Fournette',pos:'RB',col:'LSU',star:true,acc:'Super Bowl LV Champ'},
+    {o:5,t:'TEN',n:'Corey Davis',pos:'WR',col:'W. Michigan'},
+    {o:6,t:'NYJ',n:'Jamal Adams',pos:'S',col:'LSU',star:true,acc:'3× Pro Bowl'},
+    {o:7,t:'LAC',n:'Mike Williams',pos:'WR',col:'Clemson'},
+    {o:8,t:'CAR',n:'Christian McCaffrey',pos:'RB',col:'Stanford',star:true,acc:'2× All-Pro · SB LVIII Champ'},
+    {o:9,t:'CIN',n:'John Ross',pos:'WR',col:'Washington'},
+    {o:10,t:'KC',n:'Patrick Mahomes',pos:'QB',col:'Texas Tech',star:true,acc:'3× MVP · 3× Super Bowl'},
+    {o:11,t:'NO',n:'Marshon Lattimore',pos:'CB',col:'Ohio State',star:true,acc:'4× Pro Bowl · DROY'},
+    {o:12,t:'HOU',n:'Deshaun Watson',pos:'QB',col:'Clemson',star:true,acc:'Elite peak before off-field issues'},
+    {o:13,t:'ARI',n:'Haason Reddick',pos:'LB',col:'Temple',star:true,acc:'60+ Career Sacks'},
+    {o:14,t:'PHI',n:'Derek Barnett',pos:'DE',col:'Tennessee'},
+    {o:15,t:'IND',n:'Malik Hooker',pos:'S',col:'Ohio State'},
+    {o:16,t:'BAL',n:'Marlon Humphrey',pos:'CB',col:'Alabama',star:true,acc:'2× Pro Bowl'},
+    {o:17,t:'WAS',n:'Jonathan Allen',pos:'DL',col:'Alabama',star:true,acc:'3× Pro Bowl · All-Pro'},
+    {o:18,t:'TEN',n:"Adoree' Jackson",pos:'CB',col:'USC',star:true,acc:'1× Pro Bowl'},
+    {o:19,t:'TB',n:'O.J. Howard',pos:'TE',col:'Alabama'},
+    {o:20,t:'DEN',n:'Garett Bolles',pos:'OT',col:'Utah',star:true,acc:'1× Pro Bowl'},
+    {o:21,t:'DET',n:'Jarrad Davis',pos:'LB',col:'Florida'},
+    {o:22,t:'MIA',n:'Charles Harris',pos:'DE',col:'Missouri'},
+    {o:23,t:'NYG',n:'Evan Engram',pos:'TE',col:'Ole Miss',star:true,acc:'1× Pro Bowl'},
+    {o:24,t:'OAK',n:'Gareon Conley',pos:'CB',col:'Ohio State'},
+    {o:25,t:'CLE',n:'Jabrill Peppers',pos:'S',col:'Michigan'},
+    {o:26,t:'ATL',n:'Takkarist McKinley',pos:'DE',col:'UCLA'},
+    {o:27,t:'BUF',n:"Tre'Davious White",pos:'CB',col:'LSU',star:true,acc:'2× PB · First-Team All-Pro'},
+    {o:28,t:'DAL',n:'Taco Charlton',pos:'DE',col:'Michigan'},
+    {o:29,t:'CLE',n:'David Njoku',pos:'TE',col:'Miami'},
+    {o:30,t:'PIT',n:'T.J. Watt',pos:'LB',col:'Wisconsin',star:true,acc:'5× PB · DPOY · Tied Sack Record (22.5)'},
+    {o:31,t:'SF',n:'Reuben Foster',pos:'LB',col:'Alabama'},
+    {o:32,t:'NO',n:'Ryan Ramczyk',pos:'OT',col:'Wisconsin',star:true,acc:'3× Pro Bowl'}
+  ],
+  2:[
+    {o:33,t:'GB',n:'Kevin King',pos:'CB',col:'Washington'},
+    {o:34,t:'JAX',n:'Cam Robinson',pos:'OT',col:'Alabama'},
+    {o:35,t:'SEA',n:'Malik McDowell',pos:'DT',col:'Michigan State'},
+    {o:36,t:'ARI',n:'Budda Baker',pos:'S',col:'Washington',star:true,acc:'5× Pro Bowl'},
+    {o:37,t:'BUF',n:'Zay Jones',pos:'WR',col:'East Carolina'},
+    {o:38,t:'LAC',n:'Forrest Lamp',pos:'G',col:'W. Kentucky'},
+    {o:39,t:'NYJ',n:'Marcus Maye',pos:'S',col:'Florida'},
+    {o:40,t:'CAR',n:'Curtis Samuel',pos:'WR',col:'Ohio State'},
+    {o:41,t:'MIN',n:'Dalvin Cook',pos:'RB',col:'Florida State',star:true,acc:'5× Pro Bowl'},
+    {o:42,t:'NO',n:'Marcus Williams',pos:'S',col:'Utah'},
+    {o:43,t:'PHI',n:'Sidney Jones',pos:'CB',col:'Washington'},
+    {o:44,t:'LAR',n:'Gerald Everett',pos:'TE',col:'South Alabama'},
+    {o:45,t:'CHI',n:'Adam Shaheen',pos:'TE',col:'Ashland (D-II)'},
+    {o:46,t:'IND',n:'Quincy Wilson',pos:'CB',col:'Florida'},
+    {o:47,t:'BAL',n:'Tyus Bowser',pos:'LB',col:'Houston'},
+    {o:48,t:'CIN',n:'Joe Mixon',pos:'RB',col:'Oklahoma',star:true,acc:'3× Pro Bowl'},
+    {o:49,t:'WAS',n:'Ryan Anderson',pos:'LB',col:'Alabama'},
+    {o:50,t:'TB',n:'Justin Evans',pos:'S',col:'Texas A&M'},
+    {o:51,t:'DEN',n:'DeMarcus Walker',pos:'DE',col:'Florida State'},
+    {o:52,t:'CLE',n:'DeShone Kizer',pos:'QB',col:'Notre Dame'},
+    {o:53,t:'DET',n:'Teez Tabor',pos:'CB',col:'Florida'},
+    {o:54,t:'MIA',n:'Raekwon McMillan',pos:'LB',col:'Ohio State'},
+    {o:55,t:'NYG',n:'Dalvin Tomlinson',pos:'DT',col:'Alabama'},
+    {o:56,t:'OAK',n:'Obi Melifonwu',pos:'S',col:'UConn'},
+    {o:57,t:'HOU',n:'Zach Cunningham',pos:'LB',col:'Vanderbilt'},
+    {o:58,t:'SEA',n:'Ethan Pocic',pos:'C',col:'LSU'},
+    {o:59,t:'KC',n:'Tanoh Kpassagnon',pos:'DE',col:'Villanova'},
+    {o:60,t:'DAL',n:'Chidobe Awuzie',pos:'CB',col:'Colorado'},
+    {o:61,t:'GB',n:'Josh Jones',pos:'S',col:'NC State'},
+    {o:62,t:'PIT',n:'JuJu Smith-Schuster',pos:'WR',col:'USC',star:true,acc:'1× Pro Bowl'},
+    {o:63,t:'BUF',n:'Dion Dawkins',pos:'OT',col:'Temple',star:true,acc:'1× Pro Bowl'},
+    {o:64,t:'CAR',n:'Taylor Moton',pos:'OT',col:'W. Michigan',star:true,acc:'1× Pro Bowl'}
+  ],
+  3:[
+    {o:65,t:'CLE',n:'Larry Ogunjobi',pos:'DT',col:'Charlotte'},
+    {o:66,t:'SF',n:'Ahkello Witherspoon',pos:'CB',col:'Colorado'},
+    {o:67,t:'NO',n:'Alvin Kamara',pos:'RB',col:'Tennessee',star:true,acc:'6× Pro Bowl · OROY'},
+    {o:68,t:'JAX',n:'Dawuane Smoot',pos:'DE',col:'Illinois'},
+    {o:69,t:'LAR',n:'Cooper Kupp',pos:'WR',col:'Eastern Washington',star:true,acc:'2× PB · SB MVP · Receiving Triple Crown 2021'},
+    {o:70,t:'MIN',n:'Pat Elflein',pos:'C',col:'Ohio State'},
+    {o:71,t:'LAC',n:'Dan Feeney',pos:'G',col:'Indiana'},
+    {o:72,t:'TEN',n:'Taywan Taylor',pos:'WR',col:'W. Kentucky'},
+    {o:73,t:'CIN',n:'Jordan Willis',pos:'DE',col:'Kansas State'},
+    {o:74,t:'BAL',n:'Tim Williams',pos:'LB',col:'Alabama'},
+    {o:75,t:'ATL',n:'Duke Riley',pos:'LB',col:'LSU'},
+    {o:76,t:'NO',n:'Alex Anzalone',pos:'LB',col:'Florida'},
+    {o:77,t:'CAR',n:'Daeshon Hall',pos:'DE',col:'Texas A&M'},
+    {o:78,t:'BAL',n:'Tim Williams',pos:'LB',col:'Alabama'},
+    {o:79,t:'NYJ',n:'ArDarius Stewart',pos:'WR',col:'Alabama'},
+    {o:80,t:'IND',n:'Tarell Basham',pos:'LB',col:'Ohio'},
+    {o:81,t:'WAS',n:'Josh Harvey-Clemons',pos:'CB',col:'UCLA'},
+    {o:82,t:'DEN',n:'Carlos Henderson',pos:'WR',col:'Louisiana Tech'},
+    {o:83,t:'NE',n:'Derek Rivers',pos:'DE',col:'Youngstown State'},
+    {o:84,t:'TB',n:'Chris Godwin',pos:'WR',col:'Penn State',star:true,acc:'2× Pro Bowl'},
+    {o:85,t:'NE',n:'Antonio Garcia',pos:'OT',col:'Troy'},
+    {o:86,t:'KC',n:'Kareem Hunt',pos:'RB',col:'Toledo',star:true,acc:'2017 Rushing Champion'},
+    {o:87,t:'NYG',n:'Davis Webb',pos:'QB',col:'California'},
+    {o:88,t:'OAK',n:'Eddie Vanderdoes',pos:'DT',col:'UCLA'},
+    {o:89,t:'HOU',n:"D'Onta Foreman",pos:'RB',col:'Texas'},
+    {o:90,t:'SEA',n:'Shaquill Griffin',pos:'CB',col:'UCF',star:true,acc:'1× Pro Bowl'},
+    {o:91,t:'LAR',n:'John Johnson III',pos:'S',col:'Boston College'},
+    {o:92,t:'DAL',n:'Jourdan Lewis',pos:'CB',col:'Michigan'},
+    {o:93,t:'GB',n:'Montravius Adams',pos:'DT',col:'Auburn'},
+    {o:94,t:'PIT',n:'Cameron Sutton',pos:'CB',col:'Tennessee',star:true,acc:'1× Pro Bowl'},
+    {o:95,t:'SEA',n:'Tedric Thompson',pos:'S',col:'Michigan'},
+    {o:96,t:'DET',n:'Kenny Golladay',pos:'WR',col:'Northern Illinois',star:true,acc:'1× Pro Bowl'},
+    {o:97,t:'MIA',n:'Cordrea Tankersley',pos:'CB',col:'Clemson'},
+    {o:98,t:'ARI',n:'Chad Williams',pos:'WR',col:'Grambling State'},
+    {o:99,t:'PHI',n:'Donnel Pumphrey',pos:'CB',col:'West Virginia'},
+    {o:100,t:'TEN',n:'Jonnu Smith',pos:'TE',col:'FIU',star:true,acc:'8 TDs 2020'},
+    {o:101,t:'DEN',n:'Isaiah McKenzie',pos:'WR',col:'Georgia'},
+    {o:102,t:'SEA',n:'Nazair Jones',pos:'DT',col:'North Carolina'},
+    {o:103,t:'NO',n:'Trey Hendrickson',pos:'DE',col:'Florida Atlantic',star:true,acc:'2× PB · 2021 NFL Sack Leader'},
+    {o:104,t:'SF',n:'C.J. Beathard',pos:'QB',col:'Iowa'},
+    {o:105,t:'PIT',n:'James Conner',pos:'RB',col:'Pittsburgh',star:true,acc:'1× Pro Bowl'},
+    {o:106,t:'SEA',n:'Amara Darboh',pos:'WR',col:'Michigan'},
+    {o:107,t:'TB',n:'Kendell Beckwith',pos:'LB',col:'LSU'}
+  ],
+  4:[
+    {o:108,t:'GB',n:'Vince Biegel',pos:'LB',col:'Wisconsin'},
+    {o:109,t:'MIN',n:'Jaleel Johnson',pos:'DT',col:'Iowa'},
+    {o:110,t:'JAX',n:'Dede Westbrook',pos:'WR',col:'Oklahoma'},
+    {o:111,t:'SEA',n:'Tedric Thompson',pos:'S',col:'Colorado'},
+    {o:112,t:'CHI',n:'Eddie Jackson',pos:'S',col:'Alabama',star:true,acc:'2× PB · 2018 First-Team All-Pro'},
+    {o:113,t:'LAC',n:'Rayshawn Jenkins',pos:'S',col:'Miami (FL)'},
+    {o:114,t:'WAS',n:'Samaje Perine',pos:'RB',col:'Oklahoma'},
+    {o:115,t:'CAR',n:'Dorian Johnson',pos:'G',col:'Pittsburgh'},
+    {o:116,t:'CIN',n:'Carl Lawson',pos:'DE',col:'Auburn'},
+    {o:117,t:'LAR',n:'Josh Reynolds',pos:'WR',col:'Texas A&M'},
+    {o:118,t:'PHI',n:'Mack Hollins',pos:'WR',col:'North Carolina'},
+    {o:119,t:'CHI',n:'Tarik Cohen',pos:'RB',col:'N. Carolina A&T',star:true,acc:'1× Pro Bowl · HBCU Star'},
+    {o:120,t:'MIN',n:'Elijah Lee',pos:'LB',col:'Kansas State'},
+    {o:121,t:'SF',n:'Joe Williams',pos:'RB',col:'Utah'},
+    {o:122,t:'BAL',n:'Nico Siragusa',pos:'G',col:'San Diego State'},
+    {o:123,t:'WAS',n:'Montae Nicholson',pos:'S',col:'Michigan State'},
+    {o:124,t:'DET',n:'Jalen Reeves-Maybin',pos:'LB',col:'Tennessee'},
+    {o:125,t:'LAR',n:'Samson Ebukam',pos:'LB',col:'Eastern Washington'},
+    {o:126,t:'CLE',n:'Howard Wilson',pos:'CB',col:'Houston'},
+    {o:127,t:'DET',n:'Michael Roberts',pos:'TE',col:'Toledo'},
+    {o:128,t:'CIN',n:'Josh Malone',pos:'WR',col:'Tennessee'},
+    {o:129,t:'OAK',n:'Shalom Luani',pos:'S',col:'Washington State'},
+    {o:130,t:'HOU',n:"Julie'n Davenport",pos:'OT',col:'Bucknell'},
+    {o:131,t:'NE',n:'Deatrich Wise Jr.',pos:'DE',col:'Arkansas'},
+    {o:132,t:'KC',n:'Jehu Chesson',pos:'WR',col:'Michigan'},
+    {o:133,t:'DAL',n:'Ryan Switzer',pos:'WR',col:'North Carolina'},
+    {o:134,t:'GB',n:'Jamaal Williams',pos:'RB',col:'BYU'},
+    {o:135,t:'PIT',n:'Joshua Dobbs',pos:'QB',col:'Tennessee'},
+    {o:136,t:'ATL',n:'Sean Harlow',pos:'C',col:'Oregon State'},
+    {o:137,t:'IND',n:'Zach Banner',pos:'OT',col:'USC'},
+    {o:138,t:'CIN',n:'Chris Wormley',pos:'DT',col:'Michigan'},
+    {o:139,t:'KC',n:'Gehrig Dieter',pos:'WR',col:'Alabama'},
+    {o:140,t:'NYG',n:'Wayne Gallman',pos:'RB',col:'Clemson'},
+    {o:141,t:'NYJ',n:'Chad Hansen',pos:'WR',col:'California'},
+    {o:142,t:'HOU',n:'Carlos Watkins',pos:'DT',col:'Clemson'},
+    {o:143,t:'IND',n:'Marlon Mack',pos:'RB',col:'South Florida'},
+    {o:144,t:'IND',n:'Grover Stewart',pos:'DT',col:'Albany State (D-II)'}
+  ],
+  5:[
+    {o:145,t:'DEN',n:'Jake Butt',pos:'TE',col:'Michigan'},
+    {o:146,t:'SF',n:'George Kittle',pos:'TE',col:'Iowa',star:true,acc:'6× PB · All-Pro · TE Receiving Yards Record'},
+    {o:147,t:'CHI',n:'Jordan Morgan',pos:'OT',col:'Kutztown (D-II)'},
+    {o:148,t:'JAX',n:'Blair Brown',pos:'LB',col:'Ohio'},
+    {o:149,t:'ATL',n:'Damontae Kazee',pos:'CB',col:'San Diego State'},
+    {o:150,t:'NYJ',n:'Dylan Donahue',pos:'LB',col:'West Georgia'},
+    {o:151,t:'LAC',n:'Desmond King',pos:'CB',col:'Iowa',star:true,acc:'1× PB · All-Pro Return Specialist'},
+    {o:152,t:'CAR',n:'Corn Elder',pos:'CB',col:'Miami'},
+    {o:153,t:'CIN',n:'Jake Elliott',pos:'K',col:'Memphis',star:true,acc:'1× PB · Super Bowl LII Champion'},
+    {o:154,t:'WAS',n:'Jeremy Sprinkle',pos:'TE',col:'Arkansas'},
+    {o:155,t:'TEN',n:'Kevin Dodd',pos:'LB',col:'UCLA'},
+    {o:156,t:'ATL',n:'Brian Hill',pos:'RB',col:'Wyoming'},
+    {o:157,t:'ARI',n:'Korey Cunningham',pos:'OT',col:'Vanderbilt'},
+    {o:158,t:'IND',n:'Nate Hairston',pos:'CB',col:'Temple'},
+    {o:159,t:'BAL',n:'Jermaine Eluemunor',pos:'G',col:'Texas A&M'},
+    {o:160,t:'CLE',n:'Roderick Johnson',pos:'OT',col:'Florida State'},
+    {o:161,t:'IND',n:'Anthony Walker',pos:'LB',col:'Northwestern'},
+    {o:162,t:'TB',n:'Jeremy McNichols',pos:'RB',col:'Boise State'},
+    {o:163,t:'BUF',n:'Matt Milano',pos:'LB',col:'Boston College',star:true,acc:'2× Pro Bowl'},
+    {o:164,t:'MIA',n:'Isaac Asiata',pos:'G',col:'Utah'},
+    {o:165,t:'DET',n:'Quandre Diggs',pos:'CB',col:'San Diego (FCS)',star:true,acc:'3× Pro Bowl Safety'},
+    {o:166,t:'PHI',n:'Shelton Gibson',pos:'WR',col:'West Virginia'},
+    {o:167,t:'NYG',n:'Roger Lewis',pos:'DE',col:'Youngstown State'},
+    {o:168,t:'OAK',n:'Marquel Lee',pos:'LB',col:'Wake Forest'},
+    {o:169,t:'HOU',n:'Treston Decoud',pos:'CB',col:'Oregon State'},
+    {o:170,t:'MIN',n:'Rodney Adams',pos:'WR',col:'South Florida'},
+    {o:171,t:'BUF',n:'Nathan Peterman',pos:'QB',col:'Pittsburgh'},
+    {o:172,t:'DEN',n:'Isaiah McKenzie',pos:'WR',col:'Georgia'},
+    {o:173,t:'PIT',n:'Cameron Sutton',pos:'CB',col:'Utah'},
+    {o:174,t:'ATL',n:'Eric Saubert',pos:'TE',col:'Drake'},
+    {o:175,t:'GB',n:'DeAngelo Yancey',pos:'WR',col:'Purdue'},
+    {o:176,t:'CIN',n:'Mason Schreck',pos:'C',col:'Utah'},
+    {o:177,t:'SF',n:'Trent Taylor',pos:'WR',col:'Louisiana Tech'},
+    {o:178,t:'MIA',n:'Davon Godchaux',pos:'DT',col:'LSU'},
+    {o:179,t:'ARI',n:'T.J. Logan',pos:'RB',col:'North Carolina'},
+    {o:180,t:'MIN',n:'Danny Isidora',pos:'G',col:'Miami'},
+    {o:181,t:'NYJ',n:'Dylan Donahue',pos:'LB',col:'West Georgia'},
+    {o:182,t:'GB',n:'Aaron Jones',pos:'RB',col:'UTEP',star:true,acc:'2× Pro Bowl · 5.5 Career YPC'},
+    {o:183,t:'KC',n:'Ukeme Eligwe',pos:'LB',col:'Georgia Southern'},
+    {o:184,t:'PHI',n:'Shelton Gibson',pos:'S',col:'Nebraska'}
+  ],
+  6:[
+    {o:185,t:'CLE',n:'Caleb Brantley',pos:'DT',col:'Florida'},
+    {o:186,t:'BAL',n:'Chuck Clark',pos:'S',col:'Virginia Tech'},
+    {o:187,t:'SEA',n:'Michael Tyson',pos:'CB',col:'Cincinnati'},
+    {o:188,t:'NYJ',n:'Xavier Cooper',pos:'DT',col:'Louisiana-Lafayette'},
+    {o:189,t:'LAR',n:'Tanzel Smart',pos:'DT',col:'Tulane'},
+    {o:190,t:'LAC',n:'Sam Tevi',pos:'OT',col:'Utah'},
+    {o:191,t:'DAL',n:'Xavier Woods',pos:'S',col:'Louisiana Tech'},
+    {o:192,t:'CAR',n:'Alex Armah',pos:'FB',col:'West Georgia (D-II)'},
+    {o:193,t:'CIN',n:'Jordan Evans',pos:'LB',col:'Oklahoma'},
+    {o:194,t:'MIA',n:'Leonte Carroo',pos:'DT',col:'Oklahoma State'},
+    {o:195,t:'BUF',n:'Tanner Vallejo',pos:'LB',col:'Boise State'},
+    {o:196,t:'NO',n:'Al-Quadin Muhammad',pos:'DE',col:'Miami'},
+    {o:197,t:'NYJ',n:'Jeremy Clark',pos:'CB',col:'Michigan'},
+    {o:198,t:'SF',n:'Pita Taumoepenu',pos:'DE',col:'Utah'},
+    {o:199,t:'WAS',n:'Chase Roullier',pos:'C',col:'Wyoming'},
+    {o:200,t:'NYG',n:'Chad Wheeler',pos:'OT',col:'Pittsburgh'},
+    {o:201,t:'MIN',n:'Bucky Hodges',pos:'TE',col:'Virginia Tech'},
+    {o:202,t:'SF',n:'Pita Taumoepenu',pos:'DE',col:'Utah'},
+    {o:203,t:'DEN',n:"De'Angelo Henderson",pos:'RB',col:'Coastal Carolina'},
+    {o:204,t:'NYJ',n:'Derrick Jones',pos:'CB',col:'Ole Miss'},
+    {o:205,t:'DET',n:"Pat O'Connor",pos:'DE',col:'Arkansas'},
+    {o:206,t:'LAR',n:'Sam Rogers',pos:'FB',col:'Virginia Tech'},
+    {o:207,t:'CIN',n:'Darius Phillips',pos:'CB',col:'Houston'},
+    {o:208,t:'ARI',n:'Trevone Boykin',pos:'S',col:'Auburn'},
+    {o:209,t:'WAS',n:'Robert Davis',pos:'WR',col:'Georgia State'},
+    {o:210,t:'SEA',n:'Justin Senior',pos:'OT',col:'Mississippi State'},
+    {o:211,t:'NE',n:'Conor McDermott',pos:'OT',col:'UCLA'},
+    {o:212,t:'GB',n:'Kofi Amichia',pos:'OT',col:'South Florida'},
+    {o:213,t:'PIT',n:'Jacob Hagen',pos:'LS',col:'Louisville'},
+    {o:214,t:'PHI',n:'Elijah Qualls',pos:'DT',col:'Washington'},
+    {o:215,t:'DET',n:'Brad Kaaya',pos:'QB',col:'Miami'},
+    {o:216,t:'DAL',n:'Kavon Frazier',pos:'S',col:'Central Michigan'},
+    {o:217,t:'CIN',n:'Jordan Evans',pos:'LB',col:'Oklahoma'},
+    {o:218,t:'KC',n:'Gehrig Dieter',pos:'WR',col:'Alabama'}
+  ],
+  7:[
+    {o:219,t:'SF',n:'Stacy Coley',pos:'WR',col:'Miami'},
+    {o:220,t:'MIN',n:'Roderick Johnson',pos:'OT',col:'Florida State'},
+    {o:221,t:'CHI',n:'Cody Whitehair',pos:'C',col:'Kansas State'},
+    {o:222,t:'JAX',n:'Dede Westbrook',pos:'WR',col:'Oklahoma'},
+    {o:223,t:'TB',n:"Stevie Tu'ikolovatu",pos:'DT',col:'USC'},
+    {o:224,t:'CLE',n:'Matthew Dayes',pos:'RB',col:'NC State'},
+    {o:225,t:'LAC',n:'Darius Bradwell',pos:'RB',col:'Tulane'},
+    {o:226,t:'SEA',n:'Amara Darboh',pos:'WR',col:'Michigan'},
+    {o:227,t:'TEN',n:'Corey Levin',pos:'G',col:'UT Chattanooga'},
+    {o:228,t:'DAL',n:'Joey Ivie',pos:'DT',col:'Florida'},
+    {o:229,t:'SF',n:'Adrian Colbert',pos:'S',col:'Miami'},
+    {o:230,t:'WAS',n:'Robert Davis',pos:'WR',col:'Georgia State'},
+    {o:231,t:'OAK',n:'Shalom Luani',pos:'S',col:'Washington State'},
+    {o:232,t:'MIN',n:'Stacy Coley',pos:'WR',col:'Miami'},
+    {o:233,t:'CAR',n:'Harrison Butker',pos:'K',col:'Georgia Tech',star:true,acc:'4× PB · All-Pro · Chiefs Dynasty Kicker'},
+    {o:234,t:'LAR',n:'Tanzel Smart',pos:'DT',col:'Tulane'},
+    {o:235,t:'WAS',n:'Robert Davis',pos:'WR',col:'Georgia State'},
+    {o:236,t:'TEN',n:'Khalfani Muhammad',pos:'RB',col:'California'},
+    {o:237,t:'MIA',n:'Cordrea Tankersley',pos:'CB',col:'Clemson'},
+    {o:238,t:'GB',n:'Devante Mays',pos:'RB',col:'Utah State'},
+    {o:239,t:'NE',n:'Noah Brown',pos:'WR',col:'Ohio State'},
+    {o:240,t:'JAX',n:'Marquez Williams',pos:'FB',col:'Miami'},
+    {o:241,t:'NYG',n:'Roger Lewis',pos:'WR',col:'Bowling Green'},
+    {o:242,t:'OAK',n:'Shalom Luani',pos:'S',col:'Washington State'},
+    {o:243,t:'HOU',n:"Julie'n Davenport",pos:'OT',col:'Bucknell'},
+    {o:244,t:'OAK',n:'Treyvon Hester',pos:'DT',col:'Toledo'},
+    {o:245,t:'MIN',n:'Jack Tocho',pos:'CB',col:'NC State'},
+    {o:246,t:'DAL',n:'Kavon Frazier',pos:'S',col:'Central Michigan'},
+    {o:247,t:'GB',n:'Malachi Dupre',pos:'WR',col:'LSU'},
+    {o:248,t:'PIT',n:'Keion Adams',pos:'LB',col:'W. Michigan'},
+    {o:249,t:'SEA',n:'Amara Darboh',pos:'WR',col:'Michigan'},
+    {o:250,t:'DET',n:'Brad Kaaya',pos:'QB',col:'Miami'},
+    {o:251,t:'CIN',n:'Mason Schreck',pos:'TE',col:'Buffalo'},
+    {o:252,t:'DEN',n:'Matthew Dayes',pos:'RB',col:'NC State'},
+    {o:253,t:'DEN',n:'Chad Kelly',pos:'QB',col:'Ole Miss',note:'Mr. Irrelevant'}
+  ]
+};
+
+function renderPicks(r){
+  const list=document.getElementById('pickList');
+  list.innerHTML='';
+  PICKS[r].forEach((p,i)=>{
+    const div=document.createElement('div');
+    div.className='prow '+(p.star?'star':'std');
+    const nt=p.note?` <span style="font-size:9px;color:var(--text4);font-family:var(--fm)">(${p.note})</span>`:'';
+    div.innerHTML=`
+      <div class="pr-num"><div class="pr-ov">${p.o}</div><div class="pr-rp">R${r}·P${i+1}</div></div>
+      ${logoCell(p.t)}
+      <div class="pr-info">
+        <div class="pr-name${p.star?' star':''}">${p.star?'★ ':''}${p.n}${nt}</div>
+        <div><span class="pr-pos">${p.pos}</span><span class="pr-col">${p.col}</span></div>
+        ${p.star?`<div class="pr-acc">${p.acc}</div>`:''}
+      </div>
+      ${p.star?'<div class="pr-exp">▶</div>':'<div style="width:36px"></div>'}`;
+    list.appendChild(div);
+  });
+}
+function showRd(r,el){
+  document.querySelectorAll('#rdnav .rtab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');renderPicks(r);
+}
+renderPicks(1);
+
+// ── ROUND SUMMARIES ──
+const SUM={
+  1:{ctx:"The 2017 first round will be remembered above all else for the quarterback decisions. Chicago trading up to take Trubisky over Mahomes and Watson stands as one of the most dissected decisions in modern draft history. The round produced extraordinary defensive talent — Garrett, Lattimore, Allen, Watt, Humphrey — with Jonathan Allen's medical fall and T.J. Watt slipping to 30th gifting elite talent to teams smart enough to look past the concerns.",
+    best:[{n:'Patrick Mahomes',p:'#10 · KC',t:"3× MVP, 3× Super Bowl. Arguably the best QB in NFL history, taken 10th after sliding past two teams who chose other QBs ahead of him."},{n:'T.J. Watt',p:'#30 · PIT',t:"Tied Strahan's record with 22.5 sacks, won DPOY, 4× All-Pro. One of the best defensive players in NFL history found at pick 30."},{n:'Marshon Lattimore',p:'#11 · NO',t:"DROY in 2017, 4× Pro Bowl, became one of the premier shutdown corners of his generation."}],
+    bust:[{n:'Mitchell Trubisky',p:'#2 · CHI',t:"Chicago traded up to take him over Mahomes and Watson. Career QBR of 51.2, eventually lost his starting job. The trade cost made it far worse."},{n:'Taco Charlton',p:'#28 · DAL',t:"Just 5 career sacks, released before his third season. Elite tools that never translated."},{n:'Reuben Foster',p:'#31 · SF',t:"Top-5 talent who played just 19 games due to repeated off-field arrests. A football tragedy."}],
+    value:[{n:'Jonathan Allen',p:'#17 · WAS',t:"Pre-medical consensus top-5 pick who fell to 17 due to Holt's disease. Became 3× Pro Bowler and 2022 First-Team All-Pro — biggest talent-to-position gap in the round."},{n:'T.J. Watt',p:'#30 · PIT',t:"Limited college experience caused him to slip to 30. Pittsburgh getting an eventual DPOY at pick 30 is extraordinary value."}],
+    reach:[{n:'Mitchell Trubisky',p:'#2 · CHI (traded up)',t:"Projected 10-15 by most boards. Chicago gave up 4 picks to move up one spot for a one-year starter with processing concerns."},{n:'John Ross',p:'#9 · CIN',t:"Projected mid-to-late 1st pre-combine. His 4.22 combine 40 alone vaulted him to #9. Nearly every analyst considered it a significant reach driven by one drill."}],
+    grades:[{l:'Defensive talent',v:96,g:'A+',c:'#52D68A'},{l:'QB decisions',v:18,g:'D\u2212',c:'#E57373'},{l:'Overall value',v:78,g:'B+',c:'#7DC2F0'},{l:'Draft accuracy',v:62,g:'B\u2212',c:'#F0D48A'}]},
+  2:{ctx:"Round 2 was historic for the talent that slid into it due to off-field concerns. Dalvin Cook, Joe Mixon, and others were first-round talents on pure football merit. The round also produced Budda Baker (5× Pro Bowl), JuJu Smith-Schuster, and Taylor Moton. The off-field slides made teams like Cincinnati and Minnesota look brilliant in hindsight.",
+    best:[{n:'Joe Mixon',p:'#48 · CIN',t:"3× Pro Bowl, multiple 1,000-yard seasons, team captain during Bengals' Super Bowl run. A generational RB talent found in Round 2 because of optics, not ability."},{n:'Budda Baker',p:'#36 · ARI',t:"5× Pro Bowl, became one of the best safeties in the NFL and defensive captain of Arizona's defense for nearly a decade."},{n:'Dalvin Cook',p:'#41 · MIN',t:"5× Pro Bowl, multiple 1,000-yard seasons. Another first-round talent in this round due to off-field concerns."}],
+    bust:[{n:'Malik McDowell',p:'#35 · SEA',t:"A first-round talent who suffered a catastrophic ATV accident before his rookie season. Never played for Seattle."},{n:'Carlos Henderson',p:'#51 · DEN',t:"Zero NFL receptions. Never played a meaningful snap."},{n:'Teez Tabor',p:'#53 · DET',t:"His 4.62 combine 40 dropped him considerably yet Detroit reached in Round 2. Career never materialized."}],
+    value:[{n:'Joe Mixon',p:'#48 · CIN',t:"Considered by many evaluators a top-10 talent. Getting a 3× Pro Bowl back at 48 is among the greatest values in this class."},{n:'Taylor Moton',p:'#64 · CAR',t:"Became a Pro Bowl right tackle and signed a long-term extension. Excellent value at the very last pick of Round 2."}],
+    reach:[{n:'Obi Melifonwu',p:'#56 · OAK',t:"Elite combine athlete whose freakish testing drove him into Round 2. UConn competition and limited instincts never translated."},{n:'Teez Tabor',p:'#53 · DET',t:"Was a top-40 prospect pre-combine. His 4.62 40 dropped him considerably, yet Detroit reached in Round 2."}],
+    grades:[{l:'Skill position talent',v:92,g:'A',c:'#52D68A'},{l:'OL/DL depth',v:72,g:'B',c:'#7DC2F0'},{l:'Overall value',v:85,g:'A\u2212',c:'#52D68A'},{l:'Injury/off-field luck',v:15,g:'D\u2212',c:'#E57373'}]},
+  3:{ctx:"Round 3 of the 2017 draft may be the greatest third round in modern draft history. Cooper Kupp, Alvin Kamara, Trey Hendrickson, Kareem Hunt, James Conner, Shaquill Griffin, and Chris Godwin were all found here. The sheer concentration of eventual Pro Bowl players from a single third round is historically rare.",
+    best:[{n:'Cooper Kupp',p:'#69 · LAR',t:"2021 receiving triple crown, Super Bowl MVP. Posted the greatest single-season receiving performance in NFL history. FCS pick taken 69th overall."},{n:'Alvin Kamara',p:'#67 · NO',t:"6× Pro Bowl, OROY, NFL Christmas Day record (6 TDs). Off-field concerns and role uncertainty drove the fall."},{n:'Trey Hendrickson',p:'#103 · NO',t:"Led the NFL in sacks in 2021 (14), earned 2× Pro Bowl and a $60M+ extension. C-USA comp pick turned elite pass rusher."}],
+    bust:[{n:'Davis Webb',p:'#87 · NYG',t:"Never started an NFL game. Spent career as a backup before a brief CFL stint."},{n:'Amara Darboh',p:'#106 · SEA',t:"Played just 9 NFL games and never caught more than 5 passes in a season."}],
+    value:[{n:'Cooper Kupp',p:'#69 · LAR',t:"FCS receiver projected 3rd–5th round. Became the greatest single-season receiver in NFL history. The ultimate refutation of the small-school discount."},{n:'Trey Hendrickson',p:'#103 · NO',t:"C-USA comp pick who led the NFL in sacks. Projected 4th–6th round by most boards."}],
+    reach:[{n:'Eddie Vanderdoes',p:'#88 · OAK',t:"Projected 3rd–4th round given significant injury history. Tore his ACL in camp and never played meaningful snaps."},{n:'DeMarcus Walker',p:'#51 · DEN (R2)',t:"Most boards had him as a 3rd–4th round DE. Taking him in Round 2 was aggressive."}],
+    grades:[{l:'Pro Bowl rate',v:98,g:'A+',c:'#52D68A'},{l:'Historical ranking',v:96,g:'A+',c:'#52D68A'},{l:'Overall value',v:95,g:'A+',c:'#52D68A'},{l:'Bust rate',v:60,g:'B\u2212',c:'#F0D48A'}]},
+  4:{ctx:"Round 4 produced two remarkable Day 3 finds. Eddie Jackson (injury-discounted Alabama safety) became a First-Team All-Pro. Tarik Cohen (5-6 back from NC A&T in the MEAC) earned a Pro Bowl. Carl Lawson became a productive edge rusher worth a significant free-agent contract.",
+    best:[{n:'Eddie Jackson',p:'#112 · CHI',t:"2× Pro Bowl, 2018 First-Team All-Pro. 6 interceptions and 2 defensive TDs in 2018. An injury-discounted Alabama safety who became one of the best free safeties in the NFC."},{n:'Tarik Cohen',p:'#119 · CHI',t:"1× Pro Bowl (2018). An HBCU gadget back at 5-6, 179 lbs who became a Pro Bowl-caliber weapon in space."},{n:'Carl Lawson',p:'#116 · CIN',t:"Productive edge rusher who earned a significant free-agent deal from the Jets."}],
+    bust:[{n:'Wayne Gallman',p:'#140 · NYG',t:"Never became a consistent NFL starter. Below average career for a Day 2/3 pick."},{n:'Sean Harlow',p:'#136 · ATL',t:"Never started a regular season game for Atlanta. Released quickly and never stuck on an NFL roster."}],
+    value:[{n:'Eddie Jackson',p:'#112 · CHI',t:"Pre-injury Alabama prospect who was a 1st–2nd round talent. Medical concerns dropped him to 112. Getting a First-Team All-Pro safety in Round 4 is outstanding value."},{n:'Deatrich Wise Jr.',p:'#131 · NE',t:"Became a long-term starter and reliable pass rusher for New England."}],
+    reach:[{n:'Chad Hansen',p:'#141 · NYJ',t:"Projected 5th–7th round. Played 4 NFL games and caught 4 career passes."},{n:'Jehu Chesson',p:'#139 · KC',t:"Considered 5th–6th round by most boards. Never caught a regular season NFL pass."}],
+    grades:[{l:'Pro Bowl rate',v:72,g:'B',c:'#52D68A'},{l:'Starter hit rate',v:55,g:'C+',c:'#F0D48A'},{l:'Overall value',v:70,g:'B',c:'#7DC2F0'},{l:'Bust rate',v:48,g:'C',c:'#F0D48A'}]},
+  5:{ctx:"The 2017 fifth round might be the greatest in draft history. George Kittle (#146) became arguably the best tight end ever. Aaron Jones (#182) earned 2× Pro Bowl with a historically elite yards-per-carry average. Matt Milano (#163) earned two Pro Bowls. Quandre Diggs (#165) earned three Pro Bowls. Jake Elliott (#153) won a Super Bowl. The per-pick Pro Bowl rate of this round is staggering.",
+    best:[{n:'George Kittle',p:'#146 · SF',t:"6× Pro Bowl, 2× All-Pro, $75M extension. Broke the single-season TE receiving yards record. Iowa's system hid his talent so completely he slid to the 5th round."},{n:'Aaron Jones',p:'#182 · GB',t:"2× Pro Bowl, 5.5+ career YPC average — among the best in NFL history for high-volume backs. A UTEP product found as a compensatory pick."},{n:'Quandre Diggs',p:'#165 · DET',t:"3× Pro Bowl after moving to safety in Seattle. Led the NFL in interceptions multiple times. FCS non-scholarship player who became a perennial All-Star."}],
+    bust:[{n:'Kevin Dodd',p:'#155 · TEN',t:"Played just 7 NFL games and recorded zero sacks before being released."},{n:'Nathan Peterman',p:'#171 · BUF',t:"Famous for 5 INTs in his first half as an NFL starter. Most boards had him as a UDFA prospect."}],
+    value:[{n:'George Kittle',p:'#146 · SF',t:"Iowa's system hid his receiving talent completely. Getting a future Hall of Fame tight end at pick 146 is among the best value picks in NFL draft history — any round, any year."},{n:'Matt Milano',p:'#163 · BUF',t:"Unspectacular BC production and modest size drove him to Round 5. Became a 2× Pro Bowl coverage linebacker and earned a $45M+ extension."}],
+    reach:[{n:'Nathan Peterman',p:'#171 · BUF',t:"Considered undrafted or a very late pick by most boards. Proved those boards correct immediately."},{n:'Jake Butt',p:'#145 · DEN',t:"Pre-injury a 2nd–3rd round TE. His torn ACL drove him to #145. Played only 8 NFL games across 4 seasons."}],
+    grades:[{l:'Pro Bowl rate',v:98,g:'A+',c:'#52D68A'},{l:'Historical ranking',v:98,g:'A+',c:'#52D68A'},{l:'Overall value',v:96,g:'A+',c:'#52D68A'},{l:'Bust rate',v:55,g:'C+',c:'#F0D48A'}]},
+  6:{ctx:"Round 6 was largely developmental depth. Chuck Clark (BAL, #186) became a reliable long-term starter. Chase Roullier (WAS, #199) became a solid starting center. Xavier Woods (DAL, #191) carved out a multi-year starting career. No headline Pro Bowl breakthrough but a slightly above-average contributor hit rate for the tier.",
+    best:[{n:'Chuck Clark',p:'#186 · BAL',t:"Long-term starter and defensive signal caller for Baltimore's elite defense. Earned a contract extension and was one of the most reliable safeties in the AFC."},{n:'Chase Roullier',p:'#199 · WAS',t:"Became Washington's starting center for multiple seasons and earned a contract extension."},{n:'Xavier Woods',p:'#191 · DAL',t:"Multi-year starter for Dallas who posted solid interception numbers and earned a free-agent deal from Minnesota."}],
+    bust:[{n:'Jeremy Clark',p:'#197 · NYJ',t:"Never played a regular season NFL game due to injury."},{n:'Trevone Boykin',p:'#208 · ARI',t:"Never played a regular season snap. Selected more on athletic projection than demonstrated production."}],
+    value:[{n:'Chuck Clark',p:'#186 · BAL',t:"Virginia Tech safety taken at 186 who became a long-term starting safety and signal caller for one of the NFL's best defenses."},{n:'Al-Quadin Muhammad',p:'#196 · NO',t:"Became a productive rotational pass rusher, including a 7.5-sack season with Atlanta."}],
+    reach:[{n:'Bucky Hodges',p:'#201 · MIN',t:"A massive 6-5 TE who never played an NFL regular season game."},{n:'Trevone Boykin',p:'#208 · ARI',t:"Never played a regular season snap. Selected purely on athletic projection."}],
+    grades:[{l:'Pro Bowl rate',v:22,g:'D+',c:'#E57373'},{l:'Starter hit rate',v:50,g:'C',c:'#F0D48A'},{l:'Overall value',v:52,g:'C',c:'#F0D48A'},{l:'Bust rate',v:65,g:'B\u2212',c:'#F0D48A'}]},
+  7:{ctx:"Round 7 had one extraordinary story: Harrison Butker, picked at #233 by Carolina via multiple trades, became one of the greatest kickers in NFL history — 4× Pro Bowl, multiple All-Pro, and a cornerstone of the Kansas City Chiefs dynasty. Beyond Butker, the round produced few contributors of note, which is typical for this tier.",
+    best:[{n:'Harrison Butker',p:'#233 · CAR',t:"4× Pro Bowl, 2× All-Pro, Super Bowl LVII champion. Cornerstone of KC's dynasty. One of the greatest 7th-round finds in modern draft history."},{n:'Noah Brown',p:'#239 · NE',t:"Became a productive receiver for Dallas, posting a 1,000-yard season in 2022."},{n:'Devante Mays',p:'#238 · GB',t:"Contributed as a special teams player and depth back for Green Bay."}],
+    bust:[{n:'Chad Kelly (Mr. Irrelevant)',p:'#253 · DEN',t:"Talented enough to make a roster but arrested in 2018 for trespassing, cutting his NFL career short. Later won a CFL Grey Cup."},{n:'Most of the Round',p:'—',t:"The vast majority of 7th-round picks don't make 53-man rosters. Butker's historic success is the exception that defines this round."}],
+    value:[{n:'Harrison Butker',p:'#233 · CAR',t:"7th-round kicker who became a 4× Pro Bowler, two-time All-Pro, and Super Bowl champion. The greatest gap between draft position and NFL achievement in the 2017 class."}],
+    reach:[{n:'Cordrea Tankersley',p:'#237 · MIA',t:"A Clemson corner considered undrafted level by many boards. Never stuck on an NFL roster."},{n:'Stacy Coley',p:'#219 · SF',t:"A Miami receiver many projected as undrafted. Never caught a pass in the NFL."}],
+    grades:[{l:'Pro Bowl rate',v:40,g:'C\u2212',c:'#F0D48A'},{l:'Starter hit rate',v:18,g:'D',c:'#E57373'},{l:'Overall value',v:45,g:'C',c:'#F0D48A'},{l:'Butker factor',v:100,g:'A+',c:'#52D68A'}]}
+};
+function makeEnt(arr){return arr.map(e=>`<div class="se"><div class="se-name">${e.n}</div><div class="se-pick">${e.p}</div><div class="se-note">${e.t}</div></div>`).join('')}
+function renderSum(r){
+  const d=SUM[r];
+  const g=d.grades.map(x=>`<div class="grade-row"><span class="grade-lbl">${x.l}</span><div class="grade-track"><div class="grade-fill" style="width:${x.v}%;background:linear-gradient(90deg,${x.c}88,${x.c})"></div></div><span class="grade-val" style="color:${x.c}">${x.g}</span></div>`).join('');
+  document.getElementById('sumOut').innerHTML=`
+    <div class="ctx-wrap"><div class="ctx-lbl">Round ${r} Context</div><div class="ctx-txt">${d.ctx}</div></div>
+    <div class="sum-grid">
+      <div class="scard best"><div class="sc-hdr"><span class="sc-icon">🏆</span><span class="sc-lbl">Best Players</span></div><div class="sc-body">${makeEnt(d.best)}</div></div>
+      <div class="scard bust"><div class="sc-hdr"><span class="sc-icon">📉</span><span class="sc-lbl">Biggest Disappointments</span></div><div class="sc-body">${makeEnt(d.bust)}</div></div>
+      <div class="scard value"><div class="sc-hdr"><span class="sc-icon">💎</span><span class="sc-lbl">Best Value Picks</span></div><div class="sc-body">${makeEnt(d.value)}</div></div>
+      <div class="scard reach"><div class="sc-hdr"><span class="sc-icon">🎯</span><span class="sc-lbl">Biggest Reaches</span></div><div class="sc-body">${makeEnt(d.reach)}</div></div>
+    </div>
+    <div class="grade-wrap"><div class="grade-title">Round ${r} Grade Breakdown</div>${g}</div>`;
+}
+function showSum(r,el){
+  document.querySelectorAll('#sumnav .rtab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');renderSum(r);
+}
+renderSum(1);
+
+// ── FUN FACTS CONTENT ──
+const FF={
+  snapshot:`
+    <div class="ffe gold"><div class="ffe-top"><div class="ffe-name">The Day 3 Draft</div><div class="ffe-tag gold">Historical</div></div><div class="ffe-body">No draft class in recent memory produced as much elite talent <b>outside the first round</b> as 2017. Kittle (#146), Jones (#182), Kamara (#67), Kupp (#69), Hendrickson (#103), Milano (#163), Diggs (#165), and Butker (#233) were all found on Day 2 or Day 3. The combined Pro Bowl appearances from picks #67–#253 alone rivals most entire draft classes.</div></div>
+    <div class="ffe blue"><div class="ffe-top"><div class="ffe-name">Quarterback Catastrophe</div><div class="ffe-tag blue">Historic Miss</div></div><div class="ffe-body">Two quarterbacks went in Round 1 — <b>Trubisky (#2)</b> and <b>Watson (#12)</b> — and a third, <b>DeShone Kizer, went in Round 2 (#52, CLE from TEN)</b>. Chicago traded up to take Trubisky over Mahomes and Watson in one of the most criticized decisions in modern draft history. Kizer started 15 games as a rookie and threw 22 interceptions. <b>Mahomes, taken #10 between the two Round 1 QBs, won 3 Super Bowls and 3 MVPs.</b></div></div>
+    <div class="ffe green"><div class="ffe-top"><div class="ffe-name">HBCU &amp; Small School Stars</div><div class="ffe-tag green">Diversity</div></div><div class="ffe-body"><b>Tarik Cohen</b> (NC A&amp;T, MEAC — Pro Bowl), <b>Grover Stewart</b> (Albany State D-II — 100+ game career), and <b>Cooper Kupp</b> (Eastern Washington, FCS) all made significant NFL careers despite non-Power Five backgrounds. Cohen's path from the MEAC to a Pro Bowl is one of the most extraordinary small-school success stories in draft history.</div></div>
+    <div class="ffe purple"><div class="ffe-top"><div class="ffe-name">First Draft With Tradeable Compensatory Picks</div><div class="ffe-tag purple">Rule Change</div></div><div class="ffe-body">The 2017 draft was the <b>first year in NFL history</b> that compensatory picks could be traded. Several key picks — including Hendrickson (#103), Conner (#105), Aaron Jones (#182), and Butker (#233) — were compensatory picks that were also traded, showcasing the new rule's immediate impact.</div></div>`,
+  family:`
+    <div class="ffe gold"><div class="ffe-top"><div class="ffe-name">The Watt Brothers — T.J. Watt</div><div class="ffe-tag gold">#30 · PIT · LB</div></div><div class="ffe-sub">Brother of J.J. Watt (HOU, 3× DPOY) and Derek Watt (LAC, FB)</div><div class="ffe-body">T.J.'s selection at #30 created the only moment in NFL history where <b>three brothers played in the NFL simultaneously</b>. All three Watt brothers played in the 2017 season at the same time. T.J. went on to win DPOY with a record-tying 22.5 sacks, making the family the most accomplished brotherhood in NFL defensive history.</div></div>
+    <div class="ffe green"><div class="ffe-top"><div class="ffe-name">Christian McCaffrey — Three-Generation NFL Family</div><div class="ffe-tag green">#8 · CAR · RB</div></div><div class="ffe-sub">Son of Ed McCaffrey (WR, Giants/49ers/Broncos, 3× Super Bowl champion)</div><div class="ffe-body">Christian was selected #8 overall while his older brother Max went <b>undrafted</b> the same week. Christian went on to win his own Super Bowl (LVIII with SF). His younger brother Luke was later drafted in the 3rd round in 2024, making the McCaffreys a three-player NFL family.</div></div>
+    <div class="ffe blue"><div class="ffe-top"><div class="ffe-name">Cooper Kupp — Three-Generation NFL Family</div><div class="ffe-tag blue">#69 · LAR · WR</div></div><div class="ffe-sub">Son of Craig Kupp (QB, 5th round 1990) · Grandson of Jake Kupp (G, 1960s)</div><div class="ffe-body">Three generations of Kupps have played in the NFL. Grandfather Jake played guard in the 1960s. Father Craig was drafted by the Giants in 1990. And Cooper — taken from FCS Eastern Washington at #69 — posted the <b>greatest single receiving season in NFL history</b>.</div></div>
+    <div class="ffe purple"><div class="ffe-top"><div class="ffe-name">Marlon Humphrey — Son of Pro Bowl RB</div><div class="ffe-tag purple">#16 · BAL · CB</div></div><div class="ffe-sub">Son of Bobby Humphrey (RB, Broncos/Dolphins, 1989 Pro Bowl)</div><div class="ffe-body">Bobby Humphrey was a dynamic Pro Bowl running back for Denver in the late 1980s. His son Marlon became a multi-Pro Bowl cornerback for Baltimore — giving the Humphrey family multi-generational Pro Bowl recognition at two completely different positions.</div></div>
+    <div class="ffe teal"><div class="ffe-top"><div class="ffe-name">Shaquill Griffin — Twin Brother Drafted by Same Team a Year Later</div><div class="ffe-tag teal">#90 · SEA · CB</div></div><div class="ffe-sub">Twin brother of Shaquem Griffin (LB, drafted by SEA in 2018)</div><div class="ffe-body">Shaquill was drafted by Seattle in 2017. A year later, his twin brother <b>Shaquem Griffin</b> — who had his left hand amputated at age 4 — was also drafted by Seattle. They became the <b>first twins to play together as teammates in NFL history</b>. Shaquem's one-handed journey from UCF to the NFL is one of the most inspiring stories in modern draft history.</div></div>
+    <div class="ffe blue"><div class="ffe-top"><div class="ffe-name">Trey Edmunds — Brother of Future First-Rounders</div><div class="ffe-tag blue">UDFA · NO · FB</div></div><div class="ffe-sub">Brother of Tremaine Edmunds (1st round, 2018 BUF) and Terrell Edmunds (1st round, 2018 PIT)</div><div class="ffe-body">Trey went undrafted in 2017, but <b>Tremaine and Terrell Edmunds were both selected in the first round of the 2018 NFL Draft on the same night</b> — the first pair of brothers ever to both be drafted in the first round of the same draft.</div></div>`,
+  small:`
+    <div class="ffe gold"><div class="ffe-top"><div class="ffe-name">Adam Shaheen — Ashland (D-II GLIAC) · Highest D-II Pick</div><div class="ffe-tag gold">#45 · CHI · TE · Round 2</div></div><div class="ffe-body">Shaheen played at <b>Ashland University</b> — a Division II program in Ohio. His 6-6, 278-lb frame drew Chicago's attention, and they invested a <b>2nd-round pick</b> — the highest 2017 draft selection for any D-II player. He played developmental seasons for Chicago but never broke through as a consistent starter.</div></div>
+    <div class="ffe green"><div class="ffe-top"><div class="ffe-name">Grover Stewart — Albany State (D-II SIAC) · 100+ NFL Games</div><div class="ffe-tag green">#144 · IND · DT · Round 4</div></div><div class="ffe-body">Stewart played at Albany State in the SIAC — <b>one of the weakest HBCU conferences</b> in college football, well below FCS level. Taken as the last comp pick of Round 4, he developed into a reliable interior run-stopper for Indianapolis and has played <b>over 100 career NFL games</b>. An extraordinary outcome from a D-II HBCU defensive tackle.</div></div>
+    <div class="ffe blue"><div class="ffe-top"><div class="ffe-name">Jordan Morgan — Kutztown University (D-II PSAC)</div><div class="ffe-tag blue">#147 · CHI · OT · Round 5</div></div><div class="ffe-body">Morgan played at <b>Kutztown University</b> — a Division II school in eastern Pennsylvania. The fact that a Kutztown product was drafted at all reflects how wide the 2017 net was cast on Day 3.</div></div>
+    <div class="ffe purple"><div class="ffe-top"><div class="ffe-name">Alex Armah — West Georgia (D-II Gulf South)</div><div class="ffe-tag purple">#192 · CAR · FB · Round 6</div></div><div class="ffe-body">Born in Ghana, Armah played fullback at the <b>University of West Georgia</b> — a D-II Gulf South Conference program. He carved out a multi-year NFL career as a fullback and special teams contributor for Carolina and Cleveland, proving elite blocking ability transcends competition level.</div></div>
+    <div class="ffe teal"><div class="ffe-top"><div class="ffe-name">Quandre Diggs — San Diego (FCS Pioneer, Non-Scholarship)</div><div class="ffe-tag teal">#165 · DET · CB→S · Round 5</div></div><div class="ffe-body">Diggs played at the <b>University of San Diego</b> in the Pioneer League — an FCS <em>non-scholarship</em> subdivision program. Despite this, Diggs became a <b>3× Pro Bowl safety</b> who has led the NFL in interceptions multiple times. The most successful non-scholarship college player in this draft class by a significant margin.</div></div>
+    <div class="ffe gold"><div class="ffe-top"><div class="ffe-name">HBCU Draftees — NC A&amp;T, Grambling State, Albany State</div><div class="ffe-tag gold">HBCU Representation</div></div><div class="ffe-body"><b>Tarik Cohen</b> (NC A&amp;T, MEAC — Pro Bowl), <b>Chad Williams</b> (Grambling State, SWAC — Round 3), <b>Grover Stewart</b> (Albany State, SIAC — 100+ NFL games). Cohen's path from the MEAC to a Pro Bowl selection is one of the most extraordinary small-school success stories in draft history.</div></div>`,
+  trivia:`
+    <div class="ffe gold"><div class="ffe-top"><div class="ffe-name">First Outdoor Draft in NFL History</div><div class="ffe-tag gold">Historic Venue</div></div><div class="ffe-body">The 2017 NFL Draft was held at the <b>Philadelphia Museum of Art on the Rocky Steps</b> — the first time in the 82-year history of the NFL Draft that the entire event was conducted completely outdoors. The setting drew a record <b>250,000+ attendees</b> across three days, making it the most-attended draft in league history.</div></div>
+    <div class="ffe green"><div class="ffe-top"><div class="ffe-name">Record 37 Draft-Day Trades</div><div class="ffe-tag green">NFL Record</div></div><div class="ffe-body">The 2017 draft set a then-record with <b>37 trades executed during draft weekend</b>, surpassing the previous record of 34 set in 2008. This was also the <b>first year compensatory picks could be traded</b>, which immediately turbocharged deal-making. The record was later surpassed in 2019 (40 trades).</div></div>
+    <div class="ffe blue"><div class="ffe-top"><div class="ffe-name">John Ross Breaks the All-Time 40-Yard Dash Record</div><div class="ffe-tag blue">Combine Record</div></div><div class="ffe-body">Cincinnati WR John Ross ran a <b>4.22-second 40-yard dash</b> at the NFL Combine — breaking Chris Johnson's previous record of 4.24 set in 2008. The run vaulted him from a projected mid-to-late 1st-round pick into the top-10 conversation overnight. Ross was selected #9 overall almost entirely on the basis of one combine drill. His NFL career — just 77 catches and 12 TDs — became a cautionary tale.</div></div>
+    <div class="ffe purple"><div class="ffe-top"><div class="ffe-name">Reuben Foster's Combine Dismissal</div><div class="ffe-tag purple">Draft Week Drama</div></div><div class="ffe-body">Alabama linebacker Reuben Foster — a consensus top-5 pick on talent — was <b>dismissed from the NFL Combine</b> after an altercation with a hospital worker and flagged for a diluted drug test. The dual incidents caused a massive board slide from top-5 to #31. San Francisco got elite linebacker talent at the back of Round 1 — talent tragically never realized in the NFL.</div></div>
+    <div class="ffe teal"><div class="ffe-top"><div class="ffe-name">Chicago Traded Up One Spot — And Still Got It Wrong</div><div class="ffe-tag teal">Worst Trade Ever?</div></div><div class="ffe-body">Chicago gave up picks #3, #67, #111, and a 2018 3rd-round pick to San Francisco — <b>four picks to move up one spot</b> from #3 to #2 to draft Trubisky. <b>Mahomes (#10) and Watson (#12) were both available without any trade capital required.</b></div></div>
+    <div class="ffe red"><div class="ffe-top"><div class="ffe-name">Chad Kelly — Mr. Irrelevant's Wild Ride</div><div class="ffe-tag red">Mr. Irrelevant · #253</div></div><div class="ffe-body"><b>Chad Kelly</b> of Ole Miss was selected #253 overall by Denver — the final pick. Dismissed from Clemson, bounced through four schools, starred at Ole Miss, then fell due to off-field concerns. Arrested in 2018 for trespassing, cutting his NFL career short before it started. He later won a CFL <b>Grey Cup in 2021</b>.</div></div>
+    <div class="ffe blue"><div class="ffe-top"><div class="ffe-name">Michigan &amp; Alabama Set School Draft Records</div><div class="ffe-tag blue">College Records</div></div><div class="ffe-body"><b>Michigan had 11 picks and Alabama had 10</b> — both setting school records for most players drafted in a single year. The SEC led all conferences in draft picks for the <b>11th consecutive year</b>.</div></div>
+    <div class="ffe gold"><div class="ffe-top"><div class="ffe-name">The Giants' Walkie-Talkie Penalty</div><div class="ffe-tag gold">Discipline</div></div><div class="ffe-body">The New York Giants had their <b>4th-round pick moved to the very back of Round 4</b> — dropping 12 spots to #140 — as a penalty for illegal use of a walkie-talkie on the sideline during Week 14 of the 2016 season. They used it on RB Wayne Gallman from Clemson.</div></div>`,
+  probowl:`
+    <div class="pb-slbl">Round 1 — 12 Pro Bowlers</div>
+    <div class="pb-grid">
+      <div class="pb-chip"><div class="pb-chip-n">Patrick Mahomes</div><div class="pb-chip-m">#10 · KC · QB · 8× PB · 3× MVP</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">T.J. Watt</div><div class="pb-chip-m">#30 · PIT · LB · 5× PB · DPOY</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Marshon Lattimore</div><div class="pb-chip-m">#11 · NO · CB · 4× PB · DROY</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Myles Garrett</div><div class="pb-chip-m">#1 · CLE · DE · 6× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Jamal Adams</div><div class="pb-chip-m">#6 · NYJ · S · 3× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Jonathan Allen</div><div class="pb-chip-m">#17 · WAS · DL · 3× PB · All-Pro</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Ryan Ramczyk</div><div class="pb-chip-m">#32 · NO · OT · 3× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Marlon Humphrey</div><div class="pb-chip-m">#16 · BAL · CB · 2× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Tre'Davious White</div><div class="pb-chip-m">#27 · BUF · CB · 2× PB · All-Pro</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Garett Bolles</div><div class="pb-chip-m">#20 · DEN · OT · 1× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Adoree' Jackson</div><div class="pb-chip-m">#18 · TEN · CB · 1× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Evan Engram</div><div class="pb-chip-m">#23 · NYG · TE · 1× PB</div></div>
+    </div>
+    <div class="pb-slbl">Round 2 — 6 Pro Bowlers</div>
+    <div class="pb-grid">
+      <div class="pb-chip"><div class="pb-chip-n">Budda Baker</div><div class="pb-chip-m">#36 · ARI · S · 5× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Dalvin Cook</div><div class="pb-chip-m">#41 · MIN · RB · 5× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Joe Mixon</div><div class="pb-chip-m">#48 · CIN · RB · 3× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">JuJu Smith-Schuster</div><div class="pb-chip-m">#62 · PIT · WR · 1× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Dion Dawkins</div><div class="pb-chip-m">#63 · BUF · OT · 1× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Taylor Moton</div><div class="pb-chip-m">#64 · CAR · OT · 1× PB</div></div>
+    </div>
+    <div class="pb-slbl">Round 3 — 10 Pro Bowlers</div>
+    <div class="pb-grid">
+      <div class="pb-chip"><div class="pb-chip-n">Alvin Kamara</div><div class="pb-chip-m">#67 · NO · RB · 6× PB · OROY</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Cooper Kupp</div><div class="pb-chip-m">#69 · LAR · WR · 2× PB · OPOY</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Trey Hendrickson</div><div class="pb-chip-m">#103 · NO · DE · 2× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Chris Godwin</div><div class="pb-chip-m">#84 · TB · WR · 2× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Kareem Hunt</div><div class="pb-chip-m">#86 · KC · RB · Rushing Champ</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Shaquill Griffin</div><div class="pb-chip-m">#90 · SEA · CB · 1× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">James Conner</div><div class="pb-chip-m">#105 · PIT · RB · 1× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Cameron Sutton</div><div class="pb-chip-m">#94 · PIT · CB · 1× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Kenny Golladay</div><div class="pb-chip-m">#96 · DET · WR · 1× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Jonnu Smith</div><div class="pb-chip-m">#100 · TEN · TE · PB-level seasons</div></div>
+    </div>
+    <div class="pb-slbl">Rounds 4–7 — 9 Pro Bowlers</div>
+    <div class="pb-grid">
+      <div class="pb-chip"><div class="pb-chip-n">George Kittle</div><div class="pb-chip-m">#146 · SF · TE · 6× PB · All-Pro</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Harrison Butker</div><div class="pb-chip-m">#233 · CAR · K · 4× PB · All-Pro</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Quandre Diggs</div><div class="pb-chip-m">#165 · DET · CB/S · 3× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Aaron Jones</div><div class="pb-chip-m">#182 · GB · RB · 2× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Matt Milano</div><div class="pb-chip-m">#163 · BUF · LB · 2× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Eddie Jackson</div><div class="pb-chip-m">#112 · CHI · S · 2× PB · All-Pro</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Tarik Cohen</div><div class="pb-chip-m">#119 · CHI · RB · 1× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Desmond King</div><div class="pb-chip-m">#151 · LAC · CB · 1× PB</div></div>
+      <div class="pb-chip"><div class="pb-chip-n">Jake Elliott</div><div class="pb-chip-m">#153 · CIN→PHI · K · 1× PB</div></div>
+    </div>
+    <div class="ffe gold" style="margin-top:10px"><div class="ffe-top"><div class="ffe-name">The Most Remarkable Distribution in Draft History</div><div class="ffe-tag gold">Historical</div></div><div class="ffe-body">Round 5 alone produced Kittle (6× PB), Jones (2× PB), Diggs (3× PB), Milano (2× PB), King (1× PB), and Elliott (SB champion). Round 7 produced Butker (4× PB). The density of elite talent outside Round 1 is unmatched in recent NFL Draft history and may never be replicated.</div></div>`,
+  udfa:`
+    <div class="ffe gold"><div class="ffe-top"><div class="ffe-name">Austin Ekeler — RB, Western Colorado (D-II)</div><div class="ffe-tag gold">UDFA · LAC</div></div><div class="ffe-body">Signed by the Chargers as a UDFA out of <b>Division II Western Colorado</b>, Ekeler became the single greatest undrafted success story of the 2017 class. He earned <b>2× Pro Bowl selections</b> and led the NFL with 20 touchdowns in 2022. A D-II back who wasn't drafted in 7 rounds became a perennial Pro Bowler.</div></div>
+    <div class="ffe green"><div class="ffe-top"><div class="ffe-name">Taysom Hill — QB, BYU</div><div class="ffe-tag green">UDFA · GB → NO</div></div><div class="ffe-body">Hill signed with Green Bay before finding his home in New Orleans as the most versatile offensive chess piece in football — <b>rushing, passing, receiving, and playing special teams</b> in the same game. He eventually became the Saints' starting quarterback and signed a $40M extension.</div></div>
+    <div class="ffe blue"><div class="ffe-top"><div class="ffe-name">Matt Breida — RB, Georgia Southern</div><div class="ffe-tag blue">UDFA · SF</div></div><div class="ffe-body">Breida signed with San Francisco and immediately showed elite speed — consistently one of the <b>fastest runners in the NFL by yards-per-carry</b>, averaging over 5.0 yards per carry in multiple seasons. A legitimate starting-caliber back who fell through the entire draft.</div></div>
+    <div class="ffe purple"><div class="ffe-top"><div class="ffe-name">Kendrick Bourne — WR, Eastern Washington</div><div class="ffe-tag purple">UDFA · SF</div></div><div class="ffe-body">Bourne signed with San Francisco from Eastern Washington — the <b>same FCS school that produced Cooper Kupp</b>, drafted #69 that same year. He developed into a reliable starting receiver and posted a <b>Super Bowl-winning season with New England (2021)</b>. Two stars from the same FCS school in the same draft class is extraordinarily rare.</div></div>
+    <div class="ffe teal"><div class="ffe-top"><div class="ffe-name">Robert Tonyan — TE, Indiana State (FCS)</div><div class="ffe-tag teal">UDFA · GB</div></div><div class="ffe-body">Tonyan went undrafted out of Indiana State and eventually landed in Green Bay, developing into a legitimate starting tight end who caught <b>11 touchdowns in 2020</b>. An FCS tight end passed over by all 32 teams became a Pro Bowl-level contributor.</div></div>
+    <div class="ffe gold"><div class="ffe-top"><div class="ffe-name">Cooper Rush — QB, Central Michigan</div><div class="ffe-tag gold">UDFA · DAL</div></div><div class="ffe-body">Rush signed with Dallas after the draft and spent years as Dak Prescott's backup. When Prescott was injured in 2022, Rush went <b>5-0 as a starter</b> — the longest undefeated streak for a relief starter in Cowboys history.</div></div>
+    <div class="ffe blue"><div class="ffe-top"><div class="ffe-name">Keelan Cole — WR, Kentucky Wesleyan (D-II)</div><div class="ffe-tag blue">UDFA · JAX</div></div><div class="ffe-body">Cole played at <b>Kentucky Wesleyan</b> — a Division II program — and went entirely undrafted before signing with Jacksonville. He posted over 700 yards in 2017 as a rookie and earned a multi-year starting role. A D-II receiver who went undrafted in all 7 rounds became a multi-year NFL starter.</div></div>`
+};
+function showFF(k,el){
+  document.querySelectorAll('.fftab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('ffOut').innerHTML=FF[k];
+}
+document.getElementById('ffOut').innerHTML=FF['snapshot'];
+
+
+// ── MODAL SYSTEM ──────────────────────────────────────────────────
+function openModal(){document.getElementById('playerModal').classList.add('open');document.body.style.overflow='hidden'}
+function closeModal(){document.getElementById('playerModal').classList.remove('open');document.body.style.overflow=''}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+
+function setMHdr(pick,name,sub,pos,team){
+  document.getElementById('m-pick').textContent='#'+pick;
+  document.getElementById('m-name').textContent=name;
+  document.getElementById('m-sub').textContent=sub;
+  document.getElementById('m-pos').textContent=pos;
+  const a=LOGO[team]||team.toLowerCase();
+  const img=document.getElementById('m-logo');
+  img.src='https://a.espncdn.com/i/teamlogos/nfl/500/'+a+'.png';
+  img.style.display='block';
+  const fb=document.getElementById('m-logo-fb');
+  fb.style.display='none';fb.textContent=team;fb.style.background=TC[team]||'#1e2019';
+}
+function setMTabs(tabs){
+  document.getElementById('m-tabs').innerHTML=tabs.map((t,i)=>
+    `<div class="mtab${i===0?' active':''}" onclick="switchMTab(${i},this)">${t}</div>`).join('');
+}
+function switchMTab(i,el){
+  document.querySelectorAll('.mtab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.mpanel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.mpanel')[i].classList.add('active');
+}
+
+// Combine helpers
+const HA={DE:{forty:4.78,bench:22,vert:34,broad:118,cone:7.1,shuttle:4.4},DT:{forty:5.0,bench:28,vert:28,broad:108,cone:7.3,shuttle:4.7},QB:{forty:4.80,bench:18,vert:33,broad:112,cone:7.1,shuttle:4.4},RB:{forty:4.54,bench:21,vert:36,broad:122,cone:7.0,shuttle:4.3},WR:{forty:4.48,bench:14,vert:37,broad:123,cone:6.9,shuttle:4.3},S:{forty:4.56,bench:17,vert:37,broad:122,cone:6.9,shuttle:4.25},CB:{forty:4.48,bench:13,vert:38,broad:124,cone:6.8,shuttle:4.2},LB:{forty:4.64,bench:22,vert:35,broad:118,cone:7.0,shuttle:4.35},OT:{forty:5.15,bench:24,vert:28,broad:98,cone:7.5,shuttle:4.8},TE:{forty:4.68,bench:19,vert:33,broad:115,cone:7.0,shuttle:4.4},DL:{forty:4.95,bench:28,vert:30,broad:110,cone:7.2,shuttle:4.65}};
+const DM={forty:{n:'40-Yard Dash',cls:'bf-40',low:true},bench:{n:'Bench Press',cls:'bf-bench',low:false},vert:{n:'Vertical Jump',cls:'bf-vert',low:false},broad:{n:'Broad Jump',cls:'bf-broad',low:false},cone:{n:'3-Cone Drill',cls:'bf-cone',low:true},shuttle:{n:'Shuttle Run',cls:'bf-shuttle',low:true}};
+function fv(d,v){if(v==null)return'--';if(['forty','cone','shuttle'].includes(d))return v.toFixed(2)+'s';if(d==='bench')return v+' reps';return v+'"'}
+function pc(p){return p>=80?'#52D68A':p>=50?'#F0D48A':'#E57373'}
+function combineHTML(cmb,rnk,pos){
+  const avg=HA[pos]||HA.DE;
+  if(!cmb||!Object.values(cmb).some(v=>v!=null)) return '<div class="no-combine">No combine data recorded for this player.</div>';
+  let h='';
+  Object.keys(DM).forEach(d=>{
+    const v=cmb[d]; if(v==null) return;
+    const r=rnk&&rnk[d];if(!r)return;
+    const m=DM[d];
+    const posPct=Math.round((1-(r.pr-1)/r.pt)*100);
+    const ovPct=Math.round((1-(r.or-1)/r.ot)*100);
+    const a=avg[d];
+    const hPct=m.low?Math.round(Math.min(99,Math.max(1,(a/v)*70))):Math.round(Math.min(99,Math.max(1,(v/a)*70)));
+    h+=`<div class="combine-drill">
+      <div class="drill-hdr"><span class="drill-name">${m.n}</span><span class="drill-val">${fv(d,v)}</span></div>
+      <div class="bar-r"><span class="bar-lbl">vs position</span><div class="bar-track"><div class="bar-fill ${m.cls}" style="width:${posPct}%"></div></div><span class="bar-pct" style="color:${pc(posPct)}">${posPct}th</span></div>
+      <div class="bar-r"><span class="bar-lbl">all prospects</span><div class="bar-track"><div class="bar-fill ${m.cls}" style="width:${ovPct}%;opacity:.7"></div></div><span class="bar-pct" style="color:${pc(ovPct)}">${ovPct}th</span></div>
+      <div class="bar-r"><span class="bar-lbl">historical avg</span><div class="bar-track"><div class="bar-fill ${m.cls}" style="width:${hPct}%;opacity:.4"></div></div><span class="bar-pct" style="color:${pc(hPct)}">${hPct}th</span></div>
+      <div class="bar-note">Pos avg: ${fv(d,a)} &middot; ${r.pr}/${r.pt} at position</div>
+    </div>`;
+  });
+  return h||'<div class="no-combine">Combine data unavailable.</div>';
+}
+
+// ── ROUND 1 PLAYER DATA ───────────────────────────────────────────
+const R1={
+  1:{prospect:"Garrett was the consensus #1 overall pick — the most physically gifted pass rusher to enter the draft in years. Elite first-step quickness, length, and motor. Scouts compared his ceiling to Jadeveon Clowney. A true generational talent at the position.",pro:"Garrett has become one of the premier edge rushers in football, earning 6 Pro Bowl selections and multiple First-Team All-Pro honors. He is Cleveland's all-time sack leader with 98+ career sacks and has been the defensive centerpiece of a resurgent Browns franchise.",accs:["6\u00d7 Pro Bowl","2\u00d7 First-Team All-Pro","CLE All-Time Sack Leader","98+ Career Sacks"],stats:{Sacks:"98+",Tackles:"290+",FFum:"35+",Games:"120+"},ht:"6'4\"",wt:"272",arm:"34\u00bc\"",hand:"10\u00bc\"",cmb:{forty:4.64,vert:41.0,broad:128},rnk:{forty:{pr:2,pt:15,or:8,ot:120},vert:{pr:1,pt:15,or:4,ot:115},broad:{pr:1,pt:15,or:3,ot:115}},proj:{cls:"pp-top5",lbl:"#1 Overall Lock",txt:"Garrett was universally projected #1 overall by January 2017. No analyst had him falling past #3. The only real debate was whether Cleveland would trade the pick — they didn't."}},
+  2:{prospect:"Trubisky was a one-year starter at UNC who showed elite athleticism and accuracy in a simplified offense. His stock rocketed after a single strong season, but scouts flagged limited experience, narrow read progressions, and processing concerns. Chicago famously traded up one spot to select him over Mahomes and Watson.",pro:"Trubisky's pro career was a major disappointment relative to the draft investment. He eventually lost his starting job in Chicago, served as Josh Allen's backup in Buffalo, and had a brief stint in Pittsburgh. Career passer rating consistently below league average.",accs:["2018 Pro Bowl (replacement)","2018: 3,223 Yds, 24 TDs","64 career TDs, 38 INTs"],stats:{Yards:"11,049",TDs:"64",INTs:"38",QBR:"51.2"},ht:"6'2\"",wt:"222",arm:"31\u215b\"",hand:"9\u00bd\"",cmb:{forty:4.67,vert:27.5,broad:116,shuttle:4.25},rnk:{forty:{pr:3,pt:8,or:45,ot:120},shuttle:{pr:2,pt:8,or:22,ot:120}},proj:{cls:"pp-top5",lbl:"Top-5 (Rapidly Rising)",txt:"Trubisky entered the process projected 10-15. His stock exploded after a strong performance and he became a top-3 pick after Chicago traded up. Most analysts believed he was significantly overvalued relative to Mahomes and Watson on the same board."}},
+  3:{prospect:"Thomas was an explosive interior rusher at Stanford who could play both 3T and 5T. Scouts valued his motor and high-character profile. He was the consensus #2 DL after Garrett, though many analysts felt San Francisco erred by passing on Mahomes at #2 and then Thomas rather than a QB at #3.",pro:"Thomas had a disappointing stint in San Francisco, recording just 6 sacks across 3 seasons before being released. He later became a rotational piece with Las Vegas and the Jets. Career production was far below first-round expectations.",accs:["18 Career Sacks","SF 2017 1st Round Pick"],stats:{Sacks:"18",Tackles:"155"},ht:"6'3\"",wt:"273",arm:"32\u215d\"",hand:"9\u00be\"",cmb:{forty:4.69,bench:30,vert:35.0,broad:126,cone:6.95},rnk:{forty:{pr:5,pt:15,or:48,ot:120},bench:{pr:3,pt:15,or:20,ot:115},vert:{pr:6,pt:15,or:52,ot:115},broad:{pr:7,pt:15,or:55,ot:115},cone:{pr:8,pt:15,or:62,ot:120}},proj:{cls:"pp-top5",lbl:"Top-5 Lock",txt:"Thomas was a projected top-5 pick. SF taking him at #3 was consensus. The real debate was whether SF should have traded down or taken a quarterback instead."}},
+  4:{prospect:"Fournette was an almost mythological prospect — 240 lbs with elite power and physicality. Some analysts had him in their top-5 regardless of position. Comparisons to Adrian Peterson were common, and scouts raved about his ability to run through arm tackles at will.",pro:"Fournette's career was solid but marred by injuries and discipline issues in Jacksonville. He later became a Super Bowl champion with Tampa Bay and earned a Pro Bowl nod in 2021. Career: over 6,500 rushing yards and 43 TDs.",accs:["Super Bowl LV Champion","2021 Pro Bowl","6,500+ Rush Yards","43 Career TDs"],stats:{Yards:"6,612",TDs:"43",Rec:"340",YPC:"4.1"},ht:"6'0\"",wt:"240",arm:"32\u00bd\"",hand:"9\u00be\"",cmb:{forty:4.51,bench:27},rnk:{forty:{pr:8,pt:22,or:44,ot:120},bench:{pr:5,pt:22,or:35,ot:115}},proj:{cls:"pp-top5",lbl:"Top-5 Lock",txt:"Fournette was a near-unanimous top-5 pick. Some boards had him #2 or #3 overall. The debate was philosophical — whether you draft an RB that high — not whether he was elite talent."}},
+  5:{prospect:"Davis put up historically dominant numbers at Western Michigan — his college production was unprecedented. He was WR1 on most boards, combining size, route-running polish, and elite catch radius. Some scouts applied a competition discount for WMU's weaker schedule.",pro:"Davis had a slow start in Tennessee but became a reliable starter, posting 984 yards in 2020. He signed with the Jets and had a productive season before injuries. Solid NFL starter, not a true No.1 receiver.",accs:["4,000+ Career Yards","2020: 984 Rec Yards","24 Career TDs"],stats:{Yards:"4,080",TDs:"24",Rec:"289"},ht:"6'3\"",wt:"209",arm:"33\u215b\"",hand:"9\u00bd\"",cmb:null,rnk:null,noCombine:true,combineNote:"Davis did not participate in the 2017 NFL Combine. He worked out at his pro day.",proj:{cls:"pp-top5",lbl:"Top-10 Consensus",txt:"Davis was universally projected top-10 and the WR1 on nearly every major board. Going #5 was in line with consensus projections."}},
+  6:{prospect:"Adams was the premier safety prospect — a ferocious box safety with elite instincts, blitzing ability, and leadership qualities. Scouts raved about his football IQ and compared him to Kam Chancellor. A physical specimen who could line up anywhere on the defense.",pro:"Adams made three Pro Bowls and was one of the best safeties in football before forcing a trade to Seattle. He set the single-season sack record for a safety (9.5 in 2020). Injuries significantly derailed the second half of his career.",accs:["3\u00d7 Pro Bowl","9.5 Sacks (Safety record, 2020)","16 Career INTs"],stats:{INTs:"16",Sacks:"26",Tackles:"475+"},ht:"6'0\"",wt:"213",arm:"32\u00bc\"",hand:"9\u00bc\"",cmb:{forty:4.56,vert:31.5,broad:120,cone:6.96,shuttle:4.13},rnk:{forty:{pr:4,pt:14,or:28,ot:120},vert:{pr:5,pt:14,or:38,ot:115},broad:{pr:3,pt:14,or:18,ot:115},cone:{pr:1,pt:14,or:6,ot:120},shuttle:{pr:2,pt:14,or:10,ot:120}},proj:{cls:"pp-top5",lbl:"Top-10 Lock",txt:"Adams was universally projected top-10. Several boards had him as high as #3. He was considered the best safety prospect since Earl Thomas."}},
+  7:{prospect:"Williams was an imposing 6-4, 218-lb physical specimen at WR with tremendous catch radius and contested-ball ability. A back injury caused him to miss the combine, creating uncertainty, but he was WR2 on most boards and a physical mismatch for cornerbacks.",pro:"Williams became a key piece of the Chargers' offense, best known for winning contested catches. He had a breakout 2021 (76 rec, 1,146 yards) and multiple 1,000-yard seasons with Justin Herbert.",accs:["1,146 Yards (2021)","Multiple 1,000-Yd Seasons","5,800+ Career Yards"],stats:{Yards:"5,800+",TDs:"42",Rec:"407"},ht:"6'4\"",wt:"218",arm:"33\u215b\"",hand:"9\u215d\"",cmb:null,rnk:null,noCombine:true,combineNote:"Williams did not participate in most combine drills due to a back injury suffered at Clemson. He performed at a private workout.",proj:{cls:"pp-top5",lbl:"Top-10 Consensus",txt:"Consensus WR2, Williams was projected #5-15. Going 7th was within his range. The back injury scare created significant board variation among teams that didn't get private workout access."}},
+  8:{prospect:"McCaffrey was the most versatile offensive weapon in the class — a receiving back with elite separation, pass protection acumen, and open-field brilliance from Stanford. Some questioned whether his 202-lb frame could hold up as a three-down back at the NFL level.",pro:"McCaffrey emerged as one of the best offensive players in the NFL, recording back-to-back 1,000/1,000 rushing and receiving seasons twice. He won a Super Bowl with San Francisco in 2023 and earned multiple All-Pro selections.",accs:["2\u00d7 First-Team All-Pro","Super Bowl LVIII Champion","1,000/1,000 Club (2\u00d7)","5\u00d7 Pro Bowl"],stats:{Yards:"8,000+",TDs:"60+",Rec:"625+",YPC:"4.7"},ht:"5'11\"",wt:"202",arm:"30\u215e\"",hand:"9\"",cmb:{forty:4.48,vert:37.5,broad:121,cone:6.57,shuttle:4.22},rnk:{forty:{pr:6,pt:22,or:38,ot:120},vert:{pr:6,pt:22,or:28,ot:115},broad:{pr:9,pt:22,or:60,ot:115},cone:{pr:1,pt:22,or:2,ot:120},shuttle:{pr:1,pt:22,or:1,ot:120}},proj:{cls:"pp-mid1",lbl:"Round 1, Pick 10-20",txt:"McCaffrey was projected anywhere from #5 to late 1st round. Going #8 was slightly higher than the median projection (~12-15). Carolina was widely praised for the selection."}},
+  9:{prospect:"Ross set the all-time NFL Combine 40-yard dash record (4.22s), catapulting his stock from a mid-to-late 1st round projection into the top-10 overnight. His route-running was raw and his frame slight at 188 lbs, but the speed number was historic.",pro:"Ross had one of the most disappointing careers relative to draft position in this class. Injuries decimated his time in Cincinnati. 77 career catches, 12 TDs. Out of the league by 2022 — a cautionary tale about combine-driven draft decisions.",accs:["NFL All-Time Record 40 (4.22s)","7 TDs in 2018"],stats:{Yards:"1,130",TDs:"12",Rec:"77"},ht:"5'11\"",wt:"188",arm:"30\u215d\"",hand:"9\u215b\"",cmb:{forty:4.22,bench:9,vert:37.0,broad:133},rnk:{forty:{pr:1,pt:30,or:1,ot:120},bench:{pr:30,pt:30,or:110,ot:115},vert:{pr:10,pt:30,or:32,ot:115},broad:{pr:1,pt:30,or:2,ot:115}},proj:{cls:"pp-late1",lbl:"Pre-Combine: Pick 20-35",txt:"Pre-combine, Ross was a mid-to-late 1st or early 2nd round projection. His 4.22 40 vaulted him into the top-10 conversation instantly. Most analysts felt #9 was a significant reach driven almost entirely by one combine drill."}},
+  10:{prospect:"Mahomes was a gunslinger from Texas Tech known for jaw-dropping arm talent, off-platform throws, and elite improvisational ability. His reads and footwork in a spread system raised questions, and his completion percentage was inconsistent. He slid past Trubisky (#2) and Watson (#12).",pro:"Mahomes is widely considered the best quarterback in football — a generational talent. Multiple Super Bowls and MVPs, historically elite QBR and TD/INT ratio. A future first-ballot Hall of Famer who has redefined the position.",accs:["3\u00d7 Super Bowl Champion","3\u00d7 MVP","8\u00d7 Pro Bowl","4\u00d7 First-Team All-Pro","50-TD Season (2018)"],stats:{Yards:"36,000+",TDs:"275+",INTs:"70",QBR:"74.3"},ht:"6'2\"",wt:"225",arm:"32\u00bd\"",hand:"9\u00bc\"",cmb:{forty:4.80,vert:30.0,broad:114,shuttle:4.08},rnk:{forty:{pr:7,pt:8,or:98,ot:120},vert:{pr:8,pt:8,or:90,ot:115},broad:{pr:8,pt:8,or:88,ot:115},shuttle:{pr:1,pt:8,or:12,ot:120}},proj:{cls:"pp-top5",lbl:"QB1 on many boards, Range: 5-20",txt:"Mahomes was the most polarizing prospect — some boards had him QB1 and a top-5 talent; others had him mid-first. Kansas City trading up from #27 to #10 to get him has gone down as one of the great draft steals in league history."}},
+  11:{prospect:"Lattimore was the top cornerback prospect in the class — a long, fluid cover corner from Ohio State with elite athleticism and shutdown ability. A hamstring injury limited his 2016 season but his film showed elite one-on-one coverage skills that had scouts raving.",pro:"Lattimore became one of the top corners in the NFC, earning multiple Pro Bowls and developing into a true shutdown corner. He won Defensive Rookie of the Year in 2017 and has been a consistent top-tier CB for nearly a decade.",accs:["DROY (2017)","4\u00d7 Pro Bowl","28+ Career INTs","Saints Cornerstone"],stats:{INTs:"28+",PBR:"100+",Tackles:"300+"},ht:"6'0\"",wt:"193",arm:"32\u00bc\"",hand:"9\u215e\"",cmb:{forty:4.36,vert:38.5,broad:132},rnk:{forty:{pr:1,pt:25,or:5,ot:120},vert:{pr:3,pt:25,or:12,ot:115},broad:{pr:2,pt:25,or:6,ot:115}},proj:{cls:"pp-top5",lbl:"Top-10 Consensus",txt:"Lattimore was a consensus top-10 pick and CB1 on most boards. New Orleans at #11 was considered on-value or excellent value. One of the cleanest picks in the round."}},
+  12:{prospect:"Watson was the reigning national champion from Clemson with exceptional accuracy, football IQ, mobility, and clutch performance credentials. Many scouts had him as QB1 in the class. His slide past Trubisky and Mahomes was stunning to many evaluators.",pro:"Watson was electrifying in Houston before a torn ACL. He returned as arguably the league's best passer in 2020 (4,823 yards, 33 TDs). His career was then derailed by civil lawsuits alleging sexual misconduct, resulting in an 11-game suspension and a massive contract restructure.",accs:["2020: 4,823 Yds, 33 TDs","2020: 112.4 Passer Rating","11-game suspension (2022)"],stats:{Yards:"17,000+",TDs:"120",INTs:"36",QBR:"64.0"},ht:"6'2\"",wt:"221",arm:"31\u215b\"",hand:"9\u00be\"",cmb:{forty:4.66,vert:32.5,broad:119,shuttle:4.31},rnk:{forty:{pr:4,pt:8,or:42,ot:120},vert:{pr:5,pt:8,or:72,ot:115},broad:{pr:5,pt:8,or:76,ot:115},shuttle:{pr:3,pt:8,or:45,ot:120}},proj:{cls:"pp-top5",lbl:"Many analysts' QB1, Top-10 Talent",txt:"Watson was many analysts' QB1 and a consensus top-10 pick on talent. His slide to #12 is one of the largest discrepancies between talent grade and draft position in this class — a slide driven by team preference, not scouting disagreement on his ability."}},
+  13:{prospect:"Reddick was a converted safety turned outside linebacker from Temple with elite athleticism. His pass-rush technique was raw but his motor and burst were obviously NFL-caliber. Arizona drafted him to play ILB — a decision immediately questioned by virtually every analyst.",pro:"After struggling as an ILB, Reddick moved to edge rusher and exploded — 12.5 sacks in 2020, then 11 in Carolina, 16 in Philadelphia, and 15.5 with the Jets. 60+ career sacks. One of the most remarkable position-switch success stories in recent draft history.",accs:["3\u00d7 11+ Sack Seasons","15.5 Sacks (2023)","60+ Career Sacks"],stats:{Sacks:"60+",Tackles:"250+",FFum:"15+"},ht:"6'1\"",wt:"237",arm:"33\u00bd\"",hand:"9\u00bd\"",cmb:{forty:4.52,bench:24,vert:36.5,broad:133,cone:7.01},rnk:{forty:{pr:3,pt:20,or:20,ot:120},bench:{pr:5,pt:20,or:30,ot:115},vert:{pr:4,pt:20,or:22,ot:115},broad:{pr:1,pt:20,or:2,ot:115},cone:{pr:2,pt:20,or:12,ot:120}},proj:{cls:"pp-mid1",lbl:"Round 1, Pick 15-25",txt:"Reddick's athleticism had him in the late 1st / early 2nd range on most boards. Going #13 was considered slightly aggressive. Arizona's positional fit decision (ILB rather than edge) was immediately and loudly questioned — and proved wrong."}},
+  14:{prospect:"Barnett broke Reggie White's sack record at Tennessee and was one of the most productive pass rushers in college football history. His first-step and motor graded elite, though his combine athleticism was average for a first-round edge rusher.",pro:"Barnett contributed to Philadelphia's Super Bowl LII championship and was a solid rotational piece for years. He was never an every-down starter and career sack production was modest relative to first-round billing, but he was a valued depth piece.",accs:["Super Bowl LII Champion","26 Career Sacks"],stats:{Sacks:"26",Tackles:"155",FFum:"10"},ht:"6'3\"",wt:"259",arm:"33\u00bc\"",hand:"9\u00bc\"",cmb:{forty:4.88,vert:31.0,broad:117,cone:6.96},rnk:{forty:{pr:13,pt:15,or:100,ot:120},vert:{pr:14,pt:15,or:95,ot:115},broad:{pr:14,pt:15,or:96,ot:115},cone:{pr:4,pt:15,or:28,ot:120}},proj:{cls:"pp-mid1",lbl:"Round 1, Pick 15-25",txt:"Barnett was a projected mid-to-late first rounder. Most had him 15-25. Philadelphia at 14 was slightly aggressive but within his range given his elite college production."}},
+  15:{prospect:"Hooker was a one-year starter at Ohio State widely considered the most physically gifted safety in the class — an elite ball-hawk with 7 INTs. Medical concerns about a torn labrum caused some teams to remove him from their boards entirely.",pro:"Hooker's career was decimated by injuries — torn ACL and meniscus as a rookie, then hip issues. He later joined Dallas and had his best healthy stretch as a solid starter. 12 career INTs. A player who never matched his enormous pre-draft ceiling.",accs:["12 Career INTs","Dallas Starter 2021-22"],stats:{INTs:"12",Tackles:"230+",PBR:"40+"},ht:"6'1\"",wt:"206",arm:"31\u00bc\"",hand:"9\u00bc\"",cmb:null,rnk:null,noCombine:true,combineNote:"Hooker did not participate in the 2017 combine due to his labrum injury. Medical evaluation during combine week revealed the severity of the concern.",proj:{cls:"pp-top5",lbl:"Top-10 Talent, Medical Fall",txt:"Hooker was widely viewed as a top-10 talent on pure football ability. The medical situation pushed him down most boards significantly. Indianapolis getting him at 15 was considered excellent value on a player whose ceiling was as high as anyone in the class."}},
+  16:{prospect:"Humphrey was a polished, physical corner from Nick Saban's system at Alabama. Scouts valued his technique, press coverage, and physicality, but some questioned his ball production and top-end recovery speed on deep routes.",pro:"Humphrey became one of Baltimore's defensive cornerstones, earning multiple Pro Bowls. His physicality and versatility in Baltimore's zone-heavy scheme made him invaluable. PFF consistently grades him top-10 at the position.",accs:["2\u00d7 Pro Bowl","Top-10 CB (PFF, multiple years)","18+ Career INTs"],stats:{INTs:"18+",PBR:"70+",Tackles:"280+"},ht:"6'0\"",wt:"197",arm:"30\u215e\"",hand:"9\u00bc\"",cmb:{forty:4.41,broad:125,cone:6.75},rnk:{forty:{pr:6,pt:25,or:18,ot:120},broad:{pr:5,pt:25,or:14,ot:115},cone:{pr:2,pt:25,or:8,ot:120}},proj:{cls:"pp-mid1",lbl:"Round 1, Pick 10-20",txt:"Humphrey was a projected mid-first rounder, typically in the 12-22 range. Baltimore taking him at 16 was widely regarded as on-value."}},
+  17:{prospect:"Allen was considered by many the best interior defensive lineman in the class. Some teams dropped him medically due to a degenerative shoulder condition (Holt's disease), which caused him to fall from a likely top-5 pick down to the middle of the first round.",pro:"Allen has been exceptional in Washington — arguably the best player the franchise has drafted in a generation. Multiple Pro Bowls and First-Team All-Pro in 2022. His interior pass rush is elite and he is widely considered one of the best interior defenders in the NFC.",accs:["3\u00d7 Pro Bowl","2022 First-Team All-Pro","55+ Career Sacks","Washington Franchise Pillar"],stats:{Sacks:"55+",Tackles:"380+"},ht:"6'2\"",wt:"286",arm:"33\u215e\"",hand:"10\u215e\"",cmb:{forty:5.00,bench:21,vert:30.0,broad:108,cone:7.49},rnk:{forty:{pr:5,pt:15,or:72,ot:120},bench:{pr:10,pt:15,or:55,ot:115},vert:{pr:11,pt:15,or:82,ot:115},broad:{pr:14,pt:15,or:90,ot:115},cone:{pr:8,pt:15,or:68,ot:120}},proj:{cls:"pp-top5",lbl:"Top-5 Talent, Medical Fall to #17",txt:"Pre-medical, Allen was a consensus top-5 pick. The Holt's disease diagnosis caused massive board movement. His fall to 17 made him arguably the best value pick in the round — Washington got a franchise cornerstone at a fraction of his talent-based value."}},
+  18:{prospect:"Jackson was a dynamic athlete from USC who played multiple positions including kick returner. A track star with one of the most electric combine profiles in the class. Questions about his size (5-10) and ability to jam receivers in press coverage were noted.",pro:"Jackson developed into a quality starter in Tennessee and his best football came with the New York Giants, where he earned a Pro Bowl nod. His athleticism translated to the NFL and he proved the size concerns overblown.",accs:["2021 Pro Bowl","14+ Career INTs","Giants Defensive Anchor"],stats:{INTs:"14+",PBR:"55+",Tackles:"310+"},ht:"5'10\"",wt:"186",arm:"30\u215b\"",hand:"9\"",cmb:{forty:4.42,vert:36.0,broad:122},rnk:{forty:{pr:5,pt:25,or:18,ot:120},vert:{pr:9,pt:25,or:30,ot:115},broad:{pr:8,pt:25,or:22,ot:115}},proj:{cls:"pp-mid1",lbl:"Round 1, Pick 15-25",txt:"Jackson was projected as a mid-first round pick, typically 15-25. His combine was electric and his dual CB/returner value pushed him into solid 1st-round territory. Tennessee at 18 was within his range."}},
+  19:{prospect:"Howard was considered the most athletic tight end prospect in years — a 6-6 receiving weapon with a 4.51 forty and elite route running. Some boards had him top-10 regardless of position. Scouts marveled at the combination of size, speed, and hands.",pro:"Howard showed tantalizing flashes in Tampa Bay but injuries repeatedly derailed his development. He won a Super Bowl with Tampa Bay but never put together a full healthy season. Career was ultimately underwhelming relative to his prospect grade.",accs:["Super Bowl LV Champion","5 TDs (2018)"],stats:{Yards:"2,100+",TDs:"18",Rec:"155+"},ht:"6'6\"",wt:"251",arm:"33\u00bd\"",hand:"10\"",cmb:{forty:4.51,vert:30.0,broad:121,cone:6.85,shuttle:4.16},rnk:{forty:{pr:1,pt:10,or:20,ot:120},vert:{pr:5,pt:10,or:58,ot:115},broad:{pr:3,pt:10,or:22,ot:115},cone:{pr:1,pt:10,or:8,ot:120},shuttle:{pr:2,pt:10,or:14,ot:120}},proj:{cls:"pp-mid1",lbl:"Top-15 to 20",txt:"Howard was considered a potential top-10 value. Most boards had him 10-20. Tampa Bay at 19 was considered excellent value by most analysts given his ceiling as a receiving tight end."}},
+  20:{prospect:"Bolles was a physically gifted left tackle from Utah with outstanding athleticism for the position. His age (25 at draft time) and personal history including legal troubles were notable considerations that caused board variance.",pro:"Bolles had a rocky start marred by holding penalties before emerging as one of the better left tackles in the AFC West. He earned a Pro Bowl in 2021 and was re-signed to a lucrative extension by Denver.",accs:["2021 Pro Bowl","Broncos LT Anchor","110+ NFL Starts"],stats:{Starts:"110+"},ht:"6'5\"",wt:"297",arm:"34\"",hand:"9\u215d\"",cmb:{forty:4.95,vert:28.0,broad:115},rnk:{forty:{pr:4,pt:12,or:78,ot:120},vert:{pr:5,pt:12,or:80,ot:115},broad:{pr:4,pt:12,or:75,ot:115}},proj:{cls:"pp-late1",lbl:"Round 1, Pick 15-32",txt:"Bolles was a projected mid-to-late first rounder (range: 15-32). Age, character flags, and technique concerns created board variance. Denver at 20 was within his range."}},
+  21:{prospect:"Davis was a physical, high-motor linebacker from Florida known for his blitzing ability and run-stopping prowess. Questions surrounded his ability to cover tight ends and running backs in space and whether he could process at the NFL level.",pro:"Davis never reached consistent starter-level play in Detroit. He showed flashes but battled injuries and coverage liabilities. Career was underwhelming relative to first-round status.",accs:["DET 2017 1st Round Pick","12 Career Sacks"],stats:{Sacks:"12",Tackles:"280+"},ht:"6'1\"",wt:"238",arm:"32\u00bc\"",hand:"9\u00bd\"",cmb:null,rnk:null,noCombine:true,combineNote:"Davis did not participate in the 2017 NFL Combine drills.",proj:{cls:"pp-late1",lbl:"Round 1, Pick 20-35",txt:"Davis was a projected late 1st or early 2nd round pick. Detroit taking him at 21 was slightly aggressive per consensus boards given his coverage limitations."}},
+  22:{prospect:"Harris was a lean, fast-twitch edge rusher from Missouri with fluid pass-rush moves and good initial burst. Scouts questioned his strength and ability to hold the point against the run at the NFL level.",pro:"Harris was one of the bigger disappointments of this first round. He recorded just 3.5 sacks in four seasons with Miami before being released. He briefly posted 7.5 sacks with Atlanta but couldn't sustain it.",accs:["7.5 Sacks (ATL, 2021)","16 Career Sacks"],stats:{Sacks:"16",Tackles:"120+"},ht:"6'3\"",wt:"253",arm:"33\u00bc\"",hand:"9\u215b\"",cmb:{forty:4.82,bench:21,vert:32.0,broad:109,cone:7.47},rnk:{forty:{pr:6,pt:15,or:82,ot:120},bench:{pr:10,pt:15,or:55,ot:115},vert:{pr:11,pt:15,or:72,ot:115},broad:{pr:13,pt:15,or:90,ot:115},cone:{pr:9,pt:15,or:78,ot:120}},proj:{cls:"pp-late1",lbl:"Round 1, Pick 20-35",txt:"Harris was a projected late 1st to early 2nd round pick. Most boards had him 20-40. Miami at 22 was within range though strength concerns led some to project him further down."}},
+  23:{prospect:"Engram was a freakish athlete for the tight end position — receiver body, receiver speed — who ran routes more like a wide receiver. His blocking was poor but his receiving upside was elite for the position.",pro:"Engram had a career defined by drops and injury in New York but showed genuine flashes. He joined Jacksonville and broke out in 2022 with a 73-catch, 766-yard Pro Bowl season. Career arc was ultimately redemptive.",accs:["2022 Pro Bowl","2022: 73 Rec, 766 Yards","4,500+ Career Yards"],stats:{Yards:"4,500+",TDs:"30+",Rec:"370+"},ht:"6'3\"",wt:"234",arm:"33\u00bc\"",hand:"9\u215e\"",cmb:{forty:4.42,vert:36.0,broad:125,cone:6.92,shuttle:4.23},rnk:{forty:{pr:1,pt:10,or:20,ot:120},vert:{pr:3,pt:10,or:45,ot:115},broad:{pr:2,pt:10,or:18,ot:115},cone:{pr:1,pt:10,or:8,ot:120},shuttle:{pr:2,pt:10,or:12,ot:120}},proj:{cls:"pp-mid1",lbl:"Round 1, Pick 15-30",txt:"Engram was the top TE on most boards, projected to go 15-30. Giants at 23 was within his expected range."}},
+  24:{prospect:"Conley was a polished, instinctive corner from Ohio State with excellent ball skills. A sexual assault allegation the week of the draft (charges later not filed) caused many teams to pull back, contributing to a significant slide.",pro:"Conley started in Oakland but injuries and inconsistency limited his development. He was traded to Houston and later drifted out of the league. 12 career INTs — a solid but underwhelming outcome for a first-round pick.",accs:["12 Career INTs"],stats:{INTs:"12",PBR:"40+",Tackles:"155+"},ht:"6'0\"",wt:"195",arm:"30\u215e\"",hand:"9\"",cmb:{forty:4.44,vert:37.0,broad:129,cone:6.68,shuttle:4.18},rnk:{forty:{pr:4,pt:25,or:16,ot:120},vert:{pr:4,pt:25,or:16,ot:115},broad:{pr:3,pt:25,or:8,ot:115},cone:{pr:2,pt:25,or:8,ot:120},shuttle:{pr:2,pt:25,or:9,ot:120}},proj:{cls:"pp-top5",lbl:"Top-15 Talent, Fell Due to Allegation",txt:"Conley was a top-15 corner before the allegation surfaced draft week. Many boards had him 10-18 pre-incident. Oakland at 24 represented meaningful discount value on talent most had rated significantly higher."}},
+  25:{prospect:"A multi-position Swiss Army knife at Michigan, Peppers lined up everywhere from safety to linebacker to running back. His elite athleticism was undeniable but teams struggled to project him into a defined NFL role.",pro:"Peppers developed into a solid starter in Cleveland before being included in the Odell Beckham Jr. trade to the Giants. He earned a reputation as a physical, instinctive box safety and productive blitzer.",accs:["Giants Starter 2019-22","8+ Career Sacks","8 Career INTs"],stats:{INTs:"8",Tackles:"380+",Sacks:"8"},ht:"5'11\"",wt:"213",arm:"31\u215b\"",hand:"9\u00bc\"",cmb:{forty:4.46,vert:35.5,broad:128},rnk:{forty:{pr:2,pt:14,or:14,ot:120},vert:{pr:4,pt:14,or:22,ot:115},broad:{pr:1,pt:14,or:5,ot:115}},proj:{cls:"pp-late1",lbl:"Round 1 (Late) to Round 2",txt:"Peppers was a polarizing prospect — elite athleticism, positional ambiguity. Most boards placed him late-1st or early 2nd. Cleveland getting him at 25 via Houston was considered good value."}},
+  26:{prospect:"McKinley was an explosive edge rusher from UCLA with outstanding athleticism, first-step quickness, and a relentless motor. His pass-rush technique was raw. Best known for his emotional pre-draft story involving his late grandmother.",pro:"McKinley was productive but inconsistent in Atlanta, posting 5-6 sacks in multiple seasons. He never broke through as a true every-down rusher and moved through several teams. 10 career sacks.",accs:["10 Career Sacks","ATL 4 Seasons"],stats:{Sacks:"10",Tackles:"125+"},ht:"6'2\"",wt:"250",arm:"33\u215e\"",hand:"9\u215d\"",cmb:{forty:4.59,bench:24,vert:33.0,broad:122,cone:7.48},rnk:{forty:{pr:4,pt:15,or:28,ot:120},bench:{pr:5,pt:15,or:28,ot:115},vert:{pr:10,pt:15,or:65,ot:115},broad:{pr:7,pt:15,or:35,ot:115},cone:{pr:10,pt:15,or:80,ot:120}},proj:{cls:"pp-late1",lbl:"Round 1, Pick 20-32",txt:"McKinley was a projected late 1st or early 2nd round pick based on his raw technique profile. Atlanta at 26 was within range."}},
+  27:{prospect:"White was a polished, technically sound corner from LSU with excellent ball skills and zone instincts. His athleticism was solid but not elite, and scouts highly regarded his football IQ and ability to read routes.",pro:"White became one of the best corners in the AFC, earning First-Team All-Pro honors in 2019 and multiple Pro Bowls. He was a cornerstone of Buffalo's resurgent defense before injuries slowed him later in his career.",accs:["2019 First-Team All-Pro","2\u00d7 Pro Bowl","Bills Defensive Cornerstone","22+ Career INTs"],stats:{INTs:"22+",PBR:"80+",Tackles:"280+"},ht:"5'11\"",wt:"192",arm:"31\u215b\"",hand:"9\u215b\"",cmb:{forty:4.47,vert:32.0,broad:119,cone:6.90,shuttle:4.32},rnk:{forty:{pr:9,pt:25,or:28,ot:120},vert:{pr:14,pt:25,or:55,ot:115},broad:{pr:10,pt:25,or:35,ot:115},cone:{pr:6,pt:25,or:22,ot:120},shuttle:{pr:8,pt:25,or:32,ot:120}},proj:{cls:"pp-late1",lbl:"Round 1, Pick 20-35",txt:"White was projected as a late 1st or early 2nd round pick on most boards. Buffalo getting him at 27 via the KC trade was within range and proved to be excellent value — he developed into an All-Pro caliber corner."}},
+  28:{prospect:"Charlton was a physically imposing edge rusher from Michigan with elite length and a developing pass-rush repertoire. His combine was strong but scouts noted inconsistent motor and production relative to his exceptional physical tools.",pro:"Charlton was a significant bust. He recorded just 5 sacks across parts of four seasons in Dallas before being cut and moving through several teams without sticking.",accs:["5 Career Sacks"],stats:{Sacks:"5",Tackles:"45"},ht:"6'6\"",wt:"277",arm:"35\u215e\"",hand:"9\u00be\"",cmb:{forty:4.92,bench:25,vert:33.0,broad:116,cone:7.17},rnk:{forty:{pr:7,pt:15,or:70,ot:120},bench:{pr:7,pt:15,or:42,ot:115},vert:{pr:10,pt:15,or:62,ot:115},broad:{pr:11,pt:15,or:65,ot:115},cone:{pr:6,pt:15,or:45,ot:120}},proj:{cls:"pp-late1",lbl:"Round 1, Pick 20-35",txt:"Charlton was a projected late 1st or early 2nd rounder. Dallas at 28 was within his range, though motor concerns led some evaluators to project him 2nd round."}},
+  29:{prospect:"Njoku was a freakish athletic specimen at tight end — 6-4, 246 lbs with a 4.64 forty and 37.5-inch vertical. His receiving skills were raw and his blocking undeveloped, but his physical profile was arguably the most elite of any TE in the class.",pro:"Njoku had a rocky, inconsistent career in Cleveland — flashes of big games offset by long stretches of underperformance. He became more reliable later in his tenure, signing an extension. Never became the top-end TE his athleticism suggested.",accs:["Cleveland Extension (2022)","3,500+ Career Yards"],stats:{Yards:"3,500+",TDs:"24",Rec:"270+"},ht:"6'4\"",wt:"246",arm:"33\u215d\"",hand:"10\u215b\"",cmb:{forty:4.64,vert:37.5,broad:133,cone:6.97,shuttle:4.34},rnk:{forty:{pr:2,pt:10,or:30,ot:120},vert:{pr:1,pt:10,or:18,ot:115},broad:{pr:1,pt:10,or:2,ot:115},cone:{pr:2,pt:10,or:12,ot:120},shuttle:{pr:3,pt:10,or:18,ot:120}},proj:{cls:"pp-late1",lbl:"Round 1, Pick 20-32",txt:"Njoku was projected as a late first or early 2nd round pick. Cleveland getting him at 29 was within range."}},
+  30:{prospect:"Watt was the less-heralded younger brother of J.J. Watt who played just one year as a starter at Wisconsin. His pass-rush upside was obvious, but limited experience and college production made him a developmental projection for most evaluators.",pro:"T.J. Watt has become one of the best defensive players in NFL history, tying Michael Strahan's single-season sack record with 22.5 in 2021 and winning Defensive Player of the Year. Multiple First-Team All-Pro selections. One of the greatest steals in this draft class.",accs:["DPOY 2021","4\u00d7 First-Team All-Pro","5\u00d7 Pro Bowl","22.5 Sacks (tied NFL record)","Steelers All-Time Sack Leader","100+ Career Sacks"],stats:{Sacks:"100+",Tackles:"420+",FFum:"35+"},ht:"6'4\"",wt:"252",arm:"33\u00bd\"",hand:"9\u215e\"",cmb:{forty:4.69,bench:21,vert:37.0,broad:128,cone:6.79},rnk:{forty:{pr:9,pt:20,or:58,ot:120},bench:{pr:9,pt:20,or:48,ot:115},vert:{pr:6,pt:20,or:35,ot:115},broad:{pr:4,pt:20,or:15,ot:115},cone:{pr:1,pt:20,or:6,ot:120}},proj:{cls:"pp-late1",lbl:"Round 1, Pick 20-35",txt:"Watt was projected as a late 1st or early 2nd round pick given his one year of starting experience. Pittsburgh taking him at 30 was within range. It has become one of the most value-laden picks of the decade."}},
+  31:{prospect:"Foster was considered by many the best pure linebacker in the class — instinctive, explosive, and a sideline-to-sideline playmaker from Alabama. Off-field red flags at combine week (altercation + diluted drug test) caused him to fall dramatically from a projected top-10 pick.",pro:"Foster's career was a tragedy of off-field issues. He was arrested multiple times on domestic violence charges and waived by the 49ers. He signed with Washington but never played a meaningful NFL game. Talent tragically never realized.",accs:["Career derailed by off-field issues","19 NFL games played"],stats:{Tackles:"96",INTs:"1",Games:"19"},ht:"6'1\"",wt:"229",arm:"33\u215e\"",hand:"9\u00bc\"",cmb:null,rnk:null,noCombine:true,combineNote:"Foster was dismissed from the NFL Combine following an altercation with a hospital employee. He was also flagged for a diluted drug test — the dual incidents caused a massive draft-week board slide.",proj:{cls:"pp-top5",lbl:"Top-10 Talent, Off-Field Fall to #31",txt:"Talent-wise Foster was a near-consensus top-10 — some had him top-5. His combine week incidents caused massive board drops. San Francisco getting him at 31 via Atlanta was enormous value on pure football talent that was tragically never realized."}},
+  32:{prospect:"Ramczyk was a polished, technically sound offensive tackle from Wisconsin who transferred from Division III. His footwork and pass-blocking technique were immediately pro-ready. Some scouts raised concerns about injury history and limited FBS experience.",pro:"Ramczyk has become one of the best right tackles in football, earning multiple Pro Bowls. PFF consistently grades him as a top-5 OT. He was a cornerstone of New Orleans' offensive line before injuries began limiting him in 2022-23.",accs:["3\u00d7 Pro Bowl","Top-5 PFF OT Grade (multiple years)","90+ NFL Starts"],stats:{Starts:"90+"},ht:"6'6\"",wt:"314",arm:"33\u00be\"",hand:"9\u215e\"",cmb:{bench:25},rnk:{bench:{pr:4,pt:12,or:50,ot:115}},noCombine:true,combineNote:"Ramczyk had limited combine participation due to a prior hip injury. Only the bench press was recorded. He demonstrated his athleticism at the Wisconsin and Notre Dame pro days.",proj:{cls:"pp-late1",lbl:"Round 1 (Late) to Round 2",txt:"Ramczyk was a projected late 1st or early 2nd round pick. Going 32 was at the very top of his projected range. The pick proved outstanding — he became a cornerstone Pro Bowl right tackle."}}
+};
+
+function openR1Modal(pickNum, pickData){
+  const d=R1[pickNum];
+  if(!d){console.warn('No R1 data for pick',pickNum);return;}
+  setMHdr(pickNum, pickData.n, pickData.t+' \u00b7 Round 1 \u00b7 '+pickData.col, pickData.pos, pickData.t);
+  setMTabs(['Prospect','Pro Career','Combine','Projection']);
+  // Panel 0: Prospect
+  const meas=d.ht?`<div class="mrow-title">Measurements</div><div class="mmeas-row">
+    <div class="mmeas-box"><div class="mmeas-val">${d.ht}</div><div class="mmeas-lbl">Height</div></div>
+    <div class="mmeas-box"><div class="mmeas-val">${d.wt} lbs</div><div class="mmeas-lbl">Weight</div></div>
+    ${d.arm?`<div class="mmeas-box"><div class="mmeas-val">${d.arm}</div><div class="mmeas-lbl">Arm</div></div>`:''}
+    ${d.hand?`<div class="mmeas-box"><div class="mmeas-val">${d.hand}</div><div class="mmeas-lbl">Hand</div></div>`:''}
+    <div class="mmeas-box"><div class="mmeas-val">${pickData.col}</div><div class="mmeas-lbl">College</div></div>
+  </div>`:'';
+  const p0=`<div class="mpanel active">${meas}<div class="mrow-title">Scouting Report</div><div class="mblurb">${d.prospect}</div></div>`;
+  // Panel 1: Pro Career
+  const badges=(d.accs||[]).map(a=>`<span class="maccbadge">${a}</span>`).join('');
+  const statBoxes=d.stats?`<div class="mrow-title">Career Statistics</div><div class="mstats-row">${Object.entries(d.stats).map(([k,v])=>`<div class="mstat-box"><div class="mstat-val">${v}</div><div class="mstat-lbl">${k}</div></div>`).join('')}</div>`:'';
+  const p1=`<div class="mpanel">${badges?`<div class="mrow-title">Accolades</div><div class="maccbadges">${badges}</div>`:''} ${statBoxes}<div class="mrow-title">Career Assessment</div><div class="mblurb">${d.pro}</div></div>`;
+  // Panel 2: Combine
+  const cHTML=d.noCombine?`<div class="no-combine">${d.combineNote||'Did not participate in combine drills.'}</div>`:combineHTML(d.cmb,d.rnk,pickData.pos);
+  const p2=`<div class="mpanel"><div class="mrow-title">Combine Performance</div>${cHTML}</div>`;
+  // Panel 3: Projection
+  const pr=d.proj||{cls:'pp-mid1',lbl:'Round 1',txt:'Projection data coming soon.'};
+  const p3=`<div class="mpanel"><div class="mrow-title">Pre-Draft Projection</div>
+    <span class="proj-pill ${pr.cls}">${pr.lbl}</span>
+    <div class="mblurb" style="margin-top:10px">${pr.txt}</div>
+    <div style="margin-top:10px;padding:9px;background:var(--bg);border-radius:var(--r);border:1px solid var(--bdr)">
+      <div style="font-size:9px;color:var(--text3);letter-spacing:1px;margin-bottom:4px">ACTUAL SELECTION</div>
+      <div style="font-size:12px;color:var(--text)">Pick #${pickNum} \u00b7 <strong style="color:var(--gold)">${pickData.t}</strong> \u00b7 Round 1</div>
+    </div>
+  </div>`;
+  document.getElementById('m-panels').innerHTML=p0+p1+p2+p3;
+  openModal();
+}
+
+</script>
+</body>
+</html>
